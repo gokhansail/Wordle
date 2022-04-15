@@ -5,7 +5,7 @@ sixLetterWords = []
 for line in f:
     line = line.strip('\n')
     line = line.replace("ÄŸ", 'ğ').replace("ÅŸ", 'ş').replace("Ä°", 'İ').replace("Ä±", 'ı').replace("Ã¼", 'ü').replace("Ã¶", 'ö').replace("Ã§", 'ç')
-    line = line.upper()
+    #line = line.upper()
     if len(line) == 6:
         sixLetterWords.append(line)
 
