@@ -1,163 +1,34 @@
-using System;
-using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
+SQL Öğrenme Planı
+SQL Temelleri
 
-public class CustomGroupBox : GroupBox
-{
-    // Kenarlık özellikleri
-    private Color _borderColor = Color.Gray;
-    private int _borderSize = 2;
-    private int _borderRadius = 15;
+Veri Tipleri ve Tablo Yapısı: Temel veri tipleri, tablo oluşturma yöntemleri ve anahtarlar hakkında bilgiler.
+Temel SQL Komutları: SELECT, INSERT, UPDATE, DELETE gibi temel DML komutları ve SQL syntax kullanımı.
+İleri Sorgulama Teknikleri: WHERE, ORDER BY, GROUP BY ve HAVING ile veri filtreleme, sıralama ve gruplama.
+SQL Fonksiyonları: String, matematiksel ve tarih-zaman fonksiyonları kullanımı.
+İlişkisel Veritabanı Tasarımı
 
-    // Başlık (Text) özellikleri
-    private Color _titleBackColor = Color.Transparent;
-    private Color _titleForeColor = Color.Black;
-    private Font _titleFont = new Font("Segoe UI", 10, FontStyle.Bold);
-    private ContentAlignment _titleAlignment = ContentAlignment.MiddleLeft;
+Normalizasyon: 1NF, 2NF, 3NF ve BCNF aşamaları ve uygulamaları.
+İndeksler ve Performans Optimizasyonu: İndeks kullanımı ve sorgu performansı artırma teknikleri.
+İleri SQL Konuları
 
-    // Arka plan özellikleri
-    private bool _useGradientBackground = false;
-    private Color _gradientStartColor = Color.White;
-    private Color _gradientEndColor = Color.LightGray;
+JOIN Operasyonları: INNER JOIN, LEFT/RIGHT OUTER JOIN, FULL OUTER JOIN ve CROSS JOIN kullanımı.
+Alt Sorgular ve Set Operatörleri: IN, EXISTS, UNION, INTERSECT, EXCEPT kullanımları ve örnekler.
+Pencere Fonksiyonları: OVER(), PARTITION BY, ROWS/RANGE kullanımları.
+Saklı Yordamlar ve Otomasyon
 
-    [Category("Custom Appearance")]
-    public Color BorderColor
-    {
-        get => _borderColor;
-        set { _borderColor = value; Invalidate(); }
-    }
+Saklı Yordamlar (Stored Procedures): Saklı yordamların oluşturulması, parametre kullanımı ve yönetimi.
+Tetikleyiciler (Triggers): Veritabanı tetikleyicilerinin kullanımı ve olay kontrollü işlemler.
+Veri Güvenliği ve Yönetimi
 
-    [Category("Custom Appearance")]
-    public int BorderSize
-    {
-        get => _borderSize;
-        set { _borderSize = value; Invalidate(); }
-    }
+Kullanıcı ve Erişim Kontrolü: Kullanıcı oluşturma, erişim izinleri ve roller.
+Yedekleme ve Kurtarma: Veritabanı yedekleme stratejileri ve kurtarma işlemleri.
+Proje ve Gerçek Dünya Uygulamaları
 
-    [Category("Custom Appearance")]
-    public int BorderRadius
-    {
-        get => _borderRadius;
-        set { _borderRadius = value; Invalidate(); }
-    }
+Proje Geliştirme: Gerçek bir senaryo üzerinden veritabanı projesi geliştirme.
+Performans İzleme ve Ayarlama: Veritabanı sağlık durumu izlemeleri ve performans ayarları.
 
-    [Category("Custom Appearance")]
-    public Color TitleBackColor
-    {
-        get => _titleBackColor;
-        set { _titleBackColor = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public Color TitleForeColor
-    {
-        get => _titleForeColor;
-        set { _titleForeColor = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public Font TitleFont
-    {
-        get => _titleFont;
-        set { _titleFont = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public ContentAlignment TitleAlignment
-    {
-        get => _titleAlignment;
-        set { _titleAlignment = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public bool UseGradientBackground
-    {
-        get => _useGradientBackground;
-        set { _useGradientBackground = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public Color GradientStartColor
-    {
-        get => _gradientStartColor;
-        set { _gradientStartColor = value; Invalidate(); }
-    }
-
-    [Category("Custom Appearance")]
-    public Color GradientEndColor
-    {
-        get => _gradientEndColor;
-        set { _gradientEndColor = value; Invalidate(); }
-    }
-
-    public CustomGroupBox()
-    {
-        this.SetStyle(ControlStyles.UserPaint, true);
-    }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        base.OnPaint(e);
-        Graphics g = e.Graphics;
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-
-        // Arka plan gradyan efekti
-        if (_useGradientBackground)
-        {
-            using (LinearGradientBrush brush = new LinearGradientBrush(this.ClientRectangle, _gradientStartColor, _gradientEndColor, LinearGradientMode.Vertical))
-            {
-                g.FillRectangle(brush, this.ClientRectangle);
-            }
-        }
-        else
-        {
-            using (SolidBrush brush = new SolidBrush(this.BackColor))
-            {
-                g.FillRectangle(brush, this.ClientRectangle);
-            }
-        }
-
-        // Kenarları yuvarlak yapmak için Path oluştur
-        using (GraphicsPath path = new GraphicsPath())
-        {
-            int radius = _borderRadius * 2;
-            path.AddArc(0, 0, radius, radius, 180, 90);
-            path.AddArc(this.Width - radius, 0, radius, radius, 270, 90);
-            path.AddArc(this.Width - radius, this.Height - radius, radius, radius, 0, 90);
-            path.AddArc(0, this.Height - radius, radius, radius, 90, 90);
-            path.CloseFigure();
-
-            this.Region = new Region(path);
-
-            using (Pen pen = new Pen(_borderColor, _borderSize))
-            {
-                g.DrawPath(pen, path);
-            }
-        }
-
-        // Başlık çizimi
-        SizeF textSize = g.MeasureString(this.Text, _titleFont);
-        Rectangle titleRect = new Rectangle(10, 0, this.Width - 20, (int)textSize.Height + 10);
-
-        using (SolidBrush titleBackBrush = new SolidBrush(_titleBackColor))
-        {
-            g.FillRectangle(titleBackBrush, titleRect);
-        }
-
-        using (SolidBrush textBrush = new SolidBrush(_titleForeColor))
-        {
-            StringFormat stringFormat = new StringFormat();
-            if (_titleAlignment == ContentAlignment.MiddleLeft)
-                stringFormat.Alignment = StringAlignment.Near;
-            else if (_titleAlignment == ContentAlignment.MiddleCenter)
-                stringFormat.Alignment = StringAlignment.Center;
-            else if (_titleAlignment == ContentAlignment.MiddleRight)
-                stringFormat.Alignment = StringAlignment.Far;
-
-            stringFormat.LineAlignment = StringAlignment.Center;
-            g.DrawString(this.Text, _titleFont, textBrush, titleRect, stringFormat);
-        }
-    }
-}
+SQLZoo: Interaktif SQL alıştırmaları sunan bir platform. Temel ve ileri düzey konuları kapsar. SQLZoo
+Khan Academy: SQL'in temellerini öğrenmek için video dersler ve uygulamalı alıştırmalar sağlar. Khan Academy
+W3Schools SQL Tutorial: SQL komutları ve syntax'ı üzerine detaylı bilgiler ve pratik örnekler içerir. W3Schools SQL Tutorial
+PostgreSQL Official Documentation: PostgreSQL kullanıcıları için resmi belgeler ve derinlemesine rehberler. PostgreSQL Documentation
+Microsoft SQL Server Documentation: SQL Server'ın özellikleri, araçları ve kullanımı üzerine resmi Microsoft dökümantasyonu. Microsoft SQL Server Documentation
