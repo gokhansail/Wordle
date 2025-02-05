@@ -1,146 +1,163 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
-namespace CustomControls
+public class CustomGroupBox : GroupBox
 {
-    public class CustomToolTip : ToolTip
+    // Kenarlık özellikleri
+    private Color _borderColor = Color.Gray;
+    private int _borderSize = 2;
+    private int _borderRadius = 15;
+
+    // Başlık (Text) özellikleri
+    private Color _titleBackColor = Color.Transparent;
+    private Color _titleForeColor = Color.Black;
+    private Font _titleFont = new Font("Segoe UI", 10, FontStyle.Bold);
+    private ContentAlignment _titleAlignment = ContentAlignment.MiddleLeft;
+
+    // Arka plan özellikleri
+    private bool _useGradientBackground = false;
+    private Color _gradientStartColor = Color.White;
+    private Color _gradientEndColor = Color.LightGray;
+
+    [Category("Custom Appearance")]
+    public Color BorderColor
     {
-        // Designerde görünmesi için özellikler tanımlıyoruz
-        [Category("Custom Properties")]
-        [Description("ToolTip'in arka plan rengini belirler.")]
-        public Color BackgroundColor { get; set; } = Color.FromArgb(240, 240, 240);
-
-        [Category("Custom Properties")]
-        [Description("ToolTip'in çerçeve rengini belirler.")]
-        public Color BorderColor { get; set; } = Color.Gray;
-
-        [Category("Custom Properties")]
-        [Description("ToolTip yazı rengini belirler.")]
-        public Color TextColor { get; set; } = Color.Black;
-
-        [Category("Custom Properties")]
-        [Description("ToolTip fontunu belirler.")]
-        public Font ToolTipFont { get; set; } = new Font("Arial", 10, FontStyle.Bold);
-
-        public enum IconType
-        {
-            None,
-            Information,
-            Warning,
-            Error,
-            Success
-        }
-
-        [Category("Custom Properties")]
-        [Description("ToolTip ikonunu belirler.")]
-        public IconType ToolTipIcon { get; set; } = IconType.None;
-
-        public CustomToolTip()
-        {
-            OwnerDraw = true;
-            AutoPopDelay = 5000;
-            InitialDelay = 100;
-            ReshowDelay = 100;
-            ShowAlways = true;
-
-            Draw += CustomToolTip_Draw;
-            Popup += CustomToolTip_Popup;
-        }
-
-        private void CustomToolTip_Popup(object sender, PopupEventArgs e)
-        {
-            string text = GetToolTip(e.AssociatedControl);
-            using (Graphics g = e.AssociatedControl.CreateGraphics())
-            {
-                SizeF textSize = g.MeasureString(text, ToolTipFont, 250);
-                int iconWidth = ToolTipIcon == IconType.None ? 0 : 32;
-
-                int width = (int)Math.Ceiling(textSize.Width) + 20 + iconWidth;
-                int height = (int)Math.Ceiling(textSize.Height) + 20;
-
-                e.ToolTipSize = new Size(width, height);
-            }
-        }
-
-        private void CustomToolTip_Draw(object sender, DrawToolTipEventArgs e)
-        {
-            // Arka plan
-            using (SolidBrush backgroundBrush = new SolidBrush(BackgroundColor))
-            {
-                e.Graphics.FillRectangle(backgroundBrush, e.Bounds);
-            }
-
-            // Çerçeve
-            using (Pen borderPen = new Pen(BorderColor, 1))
-            {
-                e.Graphics.DrawRectangle(borderPen, new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width - 1, e.Bounds.Height - 1));
-            }
-
-            // Metni çizme
-            using (SolidBrush textBrush = new SolidBrush(TextColor))
-            {
-                e.Graphics.DrawString(e.ToolTipText, ToolTipFont, textBrush, new PointF(e.Bounds.X + 5, e.Bounds.Y + 5));
-            }
-
-            // İkon çizme
-            Icon icon = null;
-            switch (ToolTipIcon)
-            {
-                case IconType.Information:
-                    icon = SystemIcons.Information;
-                    break;
-                case IconType.Warning:
-                    icon = SystemIcons.Warning;
-                    break;
-                case IconType.Error:
-                    icon = SystemIcons.Error;
-                    break;
-                case IconType.Success:
-                    icon = SystemIcons.Shield; // Windows'taki başarı simgesi
-                    break;
-            }
-
-            if (icon != null)
-            {
-                e.Graphics.DrawIcon(icon, new Rectangle(e.Bounds.Right - 32, e.Bounds.Top + 5, 24, 24));
-            }
-        }
+        get => _borderColor;
+        set { _borderColor = value; Invalidate(); }
     }
-}
 
-
-
-
-------------------
-
-using System;
-using System.Drawing;
-using System.Windows.Forms;
-using CustomControls; // CustomToolTip sınıfını dahil et
-
-namespace CustomToolTipExample
-{
-    public partial class Form1 : Form
+    [Category("Custom Appearance")]
+    public int BorderSize
     {
-        private CustomToolTip customToolTip;
+        get => _borderSize;
+        set { _borderSize = value; Invalidate(); }
+    }
 
-        public Form1()
+    [Category("Custom Appearance")]
+    public int BorderRadius
+    {
+        get => _borderRadius;
+        set { _borderRadius = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public Color TitleBackColor
+    {
+        get => _titleBackColor;
+        set { _titleBackColor = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public Color TitleForeColor
+    {
+        get => _titleForeColor;
+        set { _titleForeColor = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public Font TitleFont
+    {
+        get => _titleFont;
+        set { _titleFont = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public ContentAlignment TitleAlignment
+    {
+        get => _titleAlignment;
+        set { _titleAlignment = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public bool UseGradientBackground
+    {
+        get => _useGradientBackground;
+        set { _useGradientBackground = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public Color GradientStartColor
+    {
+        get => _gradientStartColor;
+        set { _gradientStartColor = value; Invalidate(); }
+    }
+
+    [Category("Custom Appearance")]
+    public Color GradientEndColor
+    {
+        get => _gradientEndColor;
+        set { _gradientEndColor = value; Invalidate(); }
+    }
+
+    public CustomGroupBox()
+    {
+        this.SetStyle(ControlStyles.UserPaint, true);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Arka plan gradyan efekti
+        if (_useGradientBackground)
         {
-            InitializeComponent();
-
-            customToolTip = new CustomToolTip
+            using (LinearGradientBrush brush = new LinearGradientBrush(this.ClientRectangle, _gradientStartColor, _gradientEndColor, LinearGradientMode.Vertical))
             {
-                BackgroundColor = Color.WhiteSmoke,
-                BorderColor = Color.DarkGray,
-                TextColor = Color.DarkBlue,
-                ToolTipFont = new Font("Verdana", 10, FontStyle.Bold),
-                ToolTipIcon = CustomToolTip.IconType.Warning
-            };
+                g.FillRectangle(brush, this.ClientRectangle);
+            }
+        }
+        else
+        {
+            using (SolidBrush brush = new SolidBrush(this.BackColor))
+            {
+                g.FillRectangle(brush, this.ClientRectangle);
+            }
+        }
 
-            customToolTip.SetToolTip(textBox1, "Lütfen tam adınızı girin.\nİsim ve soyisim birlikte yazılmalıdır.");
-            customToolTip.SetToolTip(numericUpDown1, "Yaşınızı seçiniz (18-99).");
+        // Kenarları yuvarlak yapmak için Path oluştur
+        using (GraphicsPath path = new GraphicsPath())
+        {
+            int radius = _borderRadius * 2;
+            path.AddArc(0, 0, radius, radius, 180, 90);
+            path.AddArc(this.Width - radius, 0, radius, radius, 270, 90);
+            path.AddArc(this.Width - radius, this.Height - radius, radius, radius, 0, 90);
+            path.AddArc(0, this.Height - radius, radius, radius, 90, 90);
+            path.CloseFigure();
+
+            this.Region = new Region(path);
+
+            using (Pen pen = new Pen(_borderColor, _borderSize))
+            {
+                g.DrawPath(pen, path);
+            }
+        }
+
+        // Başlık çizimi
+        SizeF textSize = g.MeasureString(this.Text, _titleFont);
+        Rectangle titleRect = new Rectangle(10, 0, this.Width - 20, (int)textSize.Height + 10);
+
+        using (SolidBrush titleBackBrush = new SolidBrush(_titleBackColor))
+        {
+            g.FillRectangle(titleBackBrush, titleRect);
+        }
+
+        using (SolidBrush textBrush = new SolidBrush(_titleForeColor))
+        {
+            StringFormat stringFormat = new StringFormat();
+            if (_titleAlignment == ContentAlignment.MiddleLeft)
+                stringFormat.Alignment = StringAlignment.Near;
+            else if (_titleAlignment == ContentAlignment.MiddleCenter)
+                stringFormat.Alignment = StringAlignment.Center;
+            else if (_titleAlignment == ContentAlignment.MiddleRight)
+                stringFormat.Alignment = StringAlignment.Far;
+
+            stringFormat.LineAlignment = StringAlignment.Center;
+            g.DrawString(this.Text, _titleFont, textBrush, titleRect, stringFormat);
         }
     }
 }
