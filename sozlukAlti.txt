@@ -1,6 +1,144 @@
-Kenarları Yumuşatma: Formun köşelerini yuvarlak hale getirmek için GraphicsPath kullanarak formun Region özelliğini ayarladık.
-Animasyonlu Açılış ve Kapanış: Form açılırken ve kapanırken Fade In ve Fade Out efektleri uygulandı.
-Özel Başlık Çubuğu: Standart başlık çubuğu yerine özelleştirilmiş bir ToolStrip ile başlık çubuğu tasarlandı ve minimize ile kapatma butonları eklendi.
-Sürüklenip Bırakılabilirlik: Formun herhangi bir yerinden tutularak sürüklenebilmesi sağlandı.
-Gradyan Arka Plan: Formun arka planına LinearGradientBrush kullanarak gradyan efekti uygulandı.
-Dinamik Kenarlık Efektleri: Formun odak durumuna göre dinamik olarak kenarlık renklerinin değişmesi sağlandı.
+using System;
+using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
+public class CustomButton : Button
+{
+    private Color hoverBackColor = Color.Gray;
+    private Color clickEffectColor = Color.DarkGray;
+    private int borderRadius = 0;
+    private int borderSize = 2;
+    private Color borderColor = Color.Black;
+    private int animationDuration = 100;
+    private int cornerRadius = 20;
+
+    public CustomButton()
+    {
+        FlatStyle = FlatStyle.Flat;
+        FlatAppearance.BorderSize = borderSize;
+        FlatAppearance.BorderColor = borderColor;
+    }
+
+    [Category("Appearance"), Description("Arka planın hover rengi.")]
+    public Color HoverBackColor
+    {
+        get { return hoverBackColor; }
+        set { hoverBackColor = value; Invalidate(); }
+    }
+
+    [Category("Appearance"), Description("Tıklama efektinin rengi.")]
+    public Color ClickEffectColor
+    {
+        get { return clickEffectColor; }
+        set { clickEffectColor = value; Invalidate(); }
+    }
+
+    [Category("Appearance"), Description("Butonun kenarlık kalınlığı.")]
+    public int BorderSize
+    {
+        get { return borderSize; }
+        set { borderSize = value; FlatAppearance.BorderSize = borderSize; Invalidate(); }
+    }
+
+    [Category("Appearance"), Description("Butonun kenarlık rengi.")]
+    public Color BorderColor
+    {
+        get { return borderColor; }
+        set { borderColor = value; FlatAppearance.BorderColor = borderColor; Invalidate(); }
+    }
+
+    [Category("Behavior"), Description("Animasyon süresi (milisaniye).")]
+    public int AnimationDuration
+    {
+        get { return animationDuration; }
+        set { animationDuration = value; Invalidate(); }
+    }
+
+    [Category("Appearance"), Description("Buton köşelerinin yuvarlaklık derecesi.")]
+    public int CornerRadius
+    {
+        get { return cornerRadius; }
+        set { cornerRadius = value; Invalidate(); }
+    }
+
+    [Category("Appearance"), Description("Butonun yuvarlak olup olmaması.")]
+    public bool IsCircular
+    {
+        get { return borderRadius > Height / 2; }
+        set { borderRadius = value ? Height / 2 : 0; Invalidate(); }
+    }
+
+    protected override void OnPaint(PaintEventArgs pevent)
+    {
+        base.OnPaint(pevent);
+        pevent.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        Rectangle rectSurface = ClientRectangle;
+        Rectangle rectBorder = Rectangle.Inflate(rectSurface, -borderSize, -borderSize);
+        int smoothSize = borderSize > 0 ? borderSize : 1;
+
+        using (GraphicsPath pathSurface = GetFigurePath(rectSurface, borderRadius))
+        using (GraphicsPath pathBorder = GetFigurePath(rectBorder, borderRadius - borderSize))
+        using (Pen penSurface = new Pen(Parent.BackColor, smoothSize))
+        using (Pen penBorder = new Pen(borderColor, borderSize))
+        {
+            pevent.Graphics.DrawPath(penSurface, pathSurface);
+            if (borderSize >= 1)
+                pevent.Graphics.DrawPath(penBorder, pathBorder);
+        }
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        ColorBlend cb = new ColorBlend();
+        cb.Colors = new Color[] { hoverBackColor, ClickEffectColor };
+        cb.Positions = new float[] { 0, 1 };
+        DrawGradient(cb);
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        Invalidate(); // Return to the original state
+    }
+
+    protected override void OnMouseDown(MouseEventArgs mevent)
+    {
+        base.OnMouseDown(mevent);
+        ColorBlend cb = new ColorBlend();
+        cb.Colors = new Color[] { ClickEffectColor, hoverBackColor };
+        cb.Positions = new float[] { 0, 1 };
+        DrawGradient(cb);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs mevent)
+    {
+        base.OnMouseUp(mevent);
+        OnMouseEnter(null); // Reset to hover state
+    }
+
+    private GraphicsPath GetFigurePath(Rectangle rect, int radius)
+    {
+        GraphicsPath path = new GraphicsPath();
+        path.StartFigure();
+        path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+        path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+        path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
+        path.CloseFigure();
+        return path;
+    }
+
+    private void DrawGradient(ColorBlend colorBlend)
+    {
+        using (LinearGradientBrush brush = new LinearGradientBrush(ClientRectangle, Color.Empty, Color.Empty, LinearGradientMode.Vertical))
+        {
+            brush.InterpolationColors = colorBlend;
+            Graphics g = CreateGraphics();
+            g.FillRectangle(brush, ClientRectangle);
+            g.Dispose();
+        }
+    }
+}
