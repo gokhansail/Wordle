@@ -1,47 +1,85 @@
-    public ShadowForm()
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+public partial class CustomForm : Form
+{
+    private Timer fadeTimer = new Timer();
+    private bool closing = false;
+    private Panel titleBar = new Panel();
+    private Button closeButton = new Button();
+
+    public CustomForm()
     {
         InitializeComponent();
-        this.SetStyle(ControlStyles.ResizeRedraw, true); // Formun boyutlandırıldığında yeniden çizilmesini sağlar.
-        this.DoubleBuffered = true;  // Titremeyi azaltmak için çift tamponlama yapar.
-        this.Padding = new Padding(10); // Gölge için boşluk bırakır.
+        this.FormBorderStyle = FormBorderStyle.None;
+        this.Opacity = 0; // Başlangıçta formun saydamlığını 0 yap
+
+        // Özel başlık çubuğu
+        titleBar.BackColor = Color.Black;
+        titleBar.Dock = DockStyle.Top;
+        titleBar.Height = 30;
+        this.Controls.Add(titleBar);
+
+        // Kapatma butonu
+        closeButton.Text = "X";
+        closeButton.ForeColor = Color.White;
+        closeButton.BackColor = Color.Red;
+        closeButton.Height = titleBar.Height;
+        closeButton.Width = 30;
+        closeButton.Dock = DockStyle.Right;
+        closeButton.Click += (s, e) => { this.Close(); };
+        titleBar.Controls.Add(closeButton);
+
+        // Animasyon zamanlayıcısı
+        fadeTimer.Interval = 10; // Hızlı bir geçiş için milisaniye cinsinden zaman aralığı
+        fadeTimer.Tick += new EventHandler(FadeIn);
+        fadeTimer.Start();
     }
 
-    protected override void OnPaint(PaintEventArgs e)
+    private void FadeIn(object sender, EventArgs e)
     {
-        base.OnPaint(e);
-        Graphics g = e.Graphics;
-        Rectangle rect = new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - 1);
-        int shadowOffset = 5; // Gölgenin uzaklığı
-        int borderRadius = 20; // Köşe yarıçapı
-
-        // Arka plan ve gölge alanı için bir yol oluşturun
-        GraphicsPath gp = new GraphicsPath();
-        gp.AddArc(rect.X, rect.Y, borderRadius, borderRadius, 180, 90);
-        gp.AddArc(rect.X + rect.Width - borderRadius, rect.Y, borderRadius, borderRadius, 270, 90);
-        gp.AddArc(rect.X + rect.Width - borderRadius, rect.Y + rect.Height - borderRadius, borderRadius, borderRadius, 0, 90);
-        gp.AddArc(rect.X, rect.Y + rect.Height - borderRadius, borderRadius, borderRadius, 90, 90);
-        gp.CloseFigure();
-
-        // Gölge çizimi için, orijinal dikdörtgeni kaydırın ve gölge efekti uygulayın
-        Rectangle shadowRect = rect;
-        shadowRect.Offset(shadowOffset, shadowOffset);
-        using (PathGradientBrush brush = new PathGradientBrush(gp))
+        if (this.Opacity < 1 && !closing)
         {
-            brush.WrapMode = WrapMode.Clamp;
-            Color blendColor = Color.FromArgb(100, Color.Black); // Gölgenin opaklığı ve rengi
-            Color[] colorArray = { Color.Transparent, blendColor };
-            brush.CenterColor = Color.Transparent;
-            brush.SurroundColors = colorArray;
-            brush.FocusScales = new PointF(0.8f, 0.8f); // Gölge yoğunluğunu ayarlamak için
-
-            // Gölgeyi çiz
-            g.FillPath(brush, gp);
+            this.Opacity += 0.05; // Her tikte opaklığı artır
         }
-
-        // Ana formu çiz
-        using (Pen pen = new Pen(Color.Gray, 1.5f)) // Ana form kenarlık rengi ve kalınlığı
+        else if (closing)
         {
-            g.DrawPath(pen, gp);
+            if (this.Opacity > 0)
+            {
+                this.Opacity -= 0.05; // Her tikte opaklığı azalt
+            }
+            else
+            {
+                fadeTimer.Stop();
+                this.Close(); // Opaklık 0 olduğunda formu kapat
+            }
+        }
+        else
+        {
+            fadeTimer.Stop(); // Tam opaklıkta zamanlayıcıyı durdur
+        }
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (!closing)
+        {
+            e.Cancel = true; // Formun doğrudan kapanmasını engelle
+            closing = true;
+            fadeTimer.Start(); // Kapanış animasyonunu başlat
+        }
+        base.OnFormClosing(e);
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.Button == MouseButtons.Left && titleBar.ClientRectangle.Contains(e.Location))
+        {
+            titleBar.Capture = false;
+            Message m = Message.Create(this.Handle, 0xA1, new IntPtr(2), IntPtr.Zero);
+            this.DefWndProc(ref m);
         }
     }
 }
