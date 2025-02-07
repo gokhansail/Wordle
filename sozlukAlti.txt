@@ -1,13 +1,15 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 public partial class CustomForm : Form
 {
     private Timer fadeTimer = new Timer();
     private bool closing = false;
-    private Panel titleBar = new Panel();
-    private Button closeButton = new Button();
+    private ToolStrip toolStrip = new ToolStrip();
+    private ToolStripButton closeButton = new ToolStripButton();
+    private ToolStripButton minimizeButton = new ToolStripButton();
 
     public CustomForm()
     {
@@ -15,24 +17,29 @@ public partial class CustomForm : Form
         this.FormBorderStyle = FormBorderStyle.None;
         this.Opacity = 0; // Başlangıçta formun saydamlığını 0 yap
 
-        // Özel başlık çubuğu
-        titleBar.BackColor = Color.Black;
-        titleBar.Dock = DockStyle.Top;
-        titleBar.Height = 30;
-        this.Controls.Add(titleBar);
+        // ToolStrip ayarları
+        toolStrip.Dock = DockStyle.Top;
+        toolStrip.AutoSize = false;
+        toolStrip.Height = 30;
+        toolStrip.BackColor = Color.LightGray;
+        toolStrip.RenderMode = ToolStripRenderMode.Professional;
+        toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+        this.Controls.Add(toolStrip);
+
+        // Minimize butonu
+        minimizeButton.Image = SystemIcons.Application.ToBitmap(); // Sistem ikonu kullanıldı
+        minimizeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+        minimizeButton.Click += (s, e) => { this.WindowState = FormWindowState.Minimized; };
+        toolStrip.Items.Add(minimizeButton);
 
         // Kapatma butonu
-        closeButton.Text = "X";
-        closeButton.ForeColor = Color.White;
-        closeButton.BackColor = Color.Red;
-        closeButton.Height = titleBar.Height;
-        closeButton.Width = 30;
-        closeButton.Dock = DockStyle.Right;
+        closeButton.Image = SystemIcons.Error.ToBitmap(); // Sistem ikonu kullanıldı
+        closeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
         closeButton.Click += (s, e) => { this.Close(); };
-        titleBar.Controls.Add(closeButton);
+        toolStrip.Items.Add(closeButton);
 
         // Animasyon zamanlayıcısı
-        fadeTimer.Interval = 10; // Hızlı bir geçiş için milisaniye cinsinden zaman aralığı
+        fadeTimer.Interval = 10;
         fadeTimer.Tick += new EventHandler(FadeIn);
         fadeTimer.Start();
     }
@@ -41,23 +48,23 @@ public partial class CustomForm : Form
     {
         if (this.Opacity < 1 && !closing)
         {
-            this.Opacity += 0.05; // Her tikte opaklığı artır
+            this.Opacity += 0.05;
         }
         else if (closing)
         {
             if (this.Opacity > 0)
             {
-                this.Opacity -= 0.05; // Her tikte opaklığı azalt
+                this.Opacity -= 0.05;
             }
             else
             {
                 fadeTimer.Stop();
-                this.Close(); // Opaklık 0 olduğunda formu kapat
+                this.Close();
             }
         }
         else
         {
-            fadeTimer.Stop(); // Tam opaklıkta zamanlayıcıyı durdur
+            fadeTimer.Stop();
         }
     }
 
@@ -65,19 +72,27 @@ public partial class CustomForm : Form
     {
         if (!closing)
         {
-            e.Cancel = true; // Formun doğrudan kapanmasını engelle
+            e.Cancel = true;
             closing = true;
-            fadeTimer.Start(); // Kapanış animasyonunu başlat
+            fadeTimer.Start();
         }
         base.OnFormClosing(e);
+    }
+
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        base.OnPaintBackground(e);
+        // Arka plana gradient efekt ekleme
+        LinearGradientBrush lgb = new LinearGradientBrush(this.ClientRectangle, Color.White, Color.Gray, LinearGradientMode.Vertical);
+        e.Graphics.FillRectangle(lgb, this.ClientRectangle);
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left && titleBar.ClientRectangle.Contains(e.Location))
+        if (e.Button == MouseButtons.Left && toolStrip.Bounds.Contains(e.Location))
         {
-            titleBar.Capture = false;
+            toolStrip.Capture = false;
             Message m = Message.Create(this.Handle, 0xA1, new IntPtr(2), IntPtr.Zero);
             this.DefWndProc(ref m);
         }
