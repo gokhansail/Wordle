@@ -6,7 +6,7 @@ using System.Windows.Forms;
 public partial class CustomForm : Form
 {
     private Timer fadeTimer = new Timer();
-    private bool closing = false;
+    private bool isClosing = false;
     private ToolStrip toolStrip = new ToolStrip();
     private ToolStripButton closeButton = new ToolStripButton();
     private ToolStripButton minimizeButton = new ToolStripButton();
@@ -14,52 +14,53 @@ public partial class CustomForm : Form
     public CustomForm()
     {
         InitializeComponent();
-        this.FormBorderStyle = FormBorderStyle.None;
-        this.Opacity = 0; // Başlangıçta formun saydamlığını 0 yap
+        FormBorderStyle = FormBorderStyle.None;
+        Opacity = 0;
 
-        // ToolStrip ayarları
         toolStrip.Dock = DockStyle.Top;
         toolStrip.AutoSize = false;
         toolStrip.Height = 30;
         toolStrip.BackColor = Color.LightGray;
         toolStrip.RenderMode = ToolStripRenderMode.Professional;
         toolStrip.GripStyle = ToolStripGripStyle.Hidden;
-        this.Controls.Add(toolStrip);
+        toolStrip.LayoutStyle = ToolStripLayoutStyle.Flow;
+        Controls.Add(toolStrip);
 
-        // Minimize butonu
-        minimizeButton.Image = SystemIcons.Application.ToBitmap(); // Sistem ikonu kullanıldı
-        minimizeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-        minimizeButton.Click += (s, e) => { this.WindowState = FormWindowState.Minimized; };
-        toolStrip.Items.Add(minimizeButton);
-
-        // Kapatma butonu
-        closeButton.Image = SystemIcons.Error.ToBitmap(); // Sistem ikonu kullanıldı
+        closeButton.Image = SystemIcons.Error.ToBitmap();
         closeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-        closeButton.Click += (s, e) => { this.Close(); };
+        closeButton.Click += (sender, e) => Close();
         toolStrip.Items.Add(closeButton);
 
-        // Animasyon zamanlayıcısı
+        minimizeButton.Image = SystemIcons.Application.ToBitmap();
+        minimizeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+        minimizeButton.Click += (sender, e) => WindowState = FormWindowState.Minimized;
+        toolStrip.Items.Add(minimizeButton);
+
+        ToolStripLabel spacer = new ToolStripLabel();
+        spacer.Spring = true;
+        toolStrip.Items.Add(spacer);
+
         fadeTimer.Interval = 10;
-        fadeTimer.Tick += new EventHandler(FadeIn);
+        fadeTimer.Tick += FadeIn;
         fadeTimer.Start();
     }
 
     private void FadeIn(object sender, EventArgs e)
     {
-        if (this.Opacity < 1 && !closing)
+        if (Opacity < 1 && !isClosing)
         {
-            this.Opacity += 0.05;
+            Opacity += 0.05;
         }
-        else if (closing)
+        else if (isClosing)
         {
-            if (this.Opacity > 0)
+            if (Opacity > 0)
             {
-                this.Opacity -= 0.05;
+                Opacity -= 0.05;
             }
             else
             {
                 fadeTimer.Stop();
-                this.Close();
+                Close();
             }
         }
         else
@@ -70,10 +71,10 @@ public partial class CustomForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        if (!closing)
+        if (!isClosing)
         {
             e.Cancel = true;
-            closing = true;
+            isClosing = true;
             fadeTimer.Start();
         }
         base.OnFormClosing(e);
@@ -82,19 +83,18 @@ public partial class CustomForm : Form
     protected override void OnPaintBackground(PaintEventArgs e)
     {
         base.OnPaintBackground(e);
-        // Arka plana gradient efekt ekleme
-        LinearGradientBrush lgb = new LinearGradientBrush(this.ClientRectangle, Color.White, Color.Gray, LinearGradientMode.Vertical);
-        e.Graphics.FillRectangle(lgb, this.ClientRectangle);
+        LinearGradientBrush lgb = new LinearGradientBrush(ClientRectangle, Color.White, Color.Gray, LinearGradientMode.Vertical);
+        e.Graphics.FillRectangle(lgb, ClientRectangle);
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left && toolStrip.Bounds.Contains(e.Location))
+        if (e.Button == MouseButtons.Left)
         {
             toolStrip.Capture = false;
-            Message m = Message.Create(this.Handle, 0xA1, new IntPtr(2), IntPtr.Zero);
-            this.DefWndProc(ref m);
+            Message m = Message.Create(Handle, 0xA1, new IntPtr(2), IntPtr.Zero);
+            DefWndProc(ref m);
         }
     }
 }
