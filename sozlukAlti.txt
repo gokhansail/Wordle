@@ -1,118 +1,12 @@
-using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-
-public partial class CustomForm : Form
+protected override void OnLoad(EventArgs e)
 {
-    private Timer fadeTimer = new Timer();
-    private bool isClosing = false;
-    private ToolStrip toolStrip = new ToolStrip();
-    private ToolStripButton closeButton = new ToolStripButton();
-    private ToolStripButton minimizeButton = new ToolStripButton();
-    private ToolStripLabel iconLabel = new ToolStripLabel();
-
-    public CustomForm()
-    {
-        InitializeComponent();
-        FormBorderStyle = FormBorderStyle.None;
-        Opacity = 0;
-        SetStyle(ControlStyles.ResizeRedraw, true);
-
-        // ToolStrip ayarları
-        toolStrip.Dock = DockStyle.Top;
-        toolStrip.AutoSize = false;
-        toolStrip.Height = 30;
-        toolStrip.BackColor = Color.LightGray;
-        toolStrip.RenderMode = ToolStripRenderMode.Professional;
-        toolStrip.GripStyle = ToolStripGripStyle.Hidden;
-        Controls.Add(toolStrip);
-
-        // Program ikonu
-        iconLabel.Image = SystemIcons.Application.ToBitmap(); // Bu geçici bir ikon, değiştirilebilir
-        iconLabel.Size = new Size(20, 20);
-        iconLabel.Margin = new Padding(5, 5, 0, 2);
-        toolStrip.Items.Add(iconLabel);
-
-        // Spacer
-        ToolStripLabel spacer = new ToolStripLabel();
-        spacer.AutoSize = false;
-        spacer.Size = new Size(10000, 0);
-        toolStrip.Items.Add(spacer);
-
-        // Minimize butonu
-        minimizeButton.Image = SystemIcons.Application.ToBitmap();
-        minimizeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-        minimizeButton.Click += (sender, e) => WindowState = FormWindowState.Minimized;
-        toolStrip.Items.Add(minimizeButton);
-
-        // Kapatma butonu
-        closeButton.Image = SystemIcons.Error.ToBitmap();
-        closeButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-        closeButton.Click += (sender, e) => Close();
-        toolStrip.Items.Add(closeButton);
-
-        // Animasyon zamanlayıcısı
-        fadeTimer.Interval = 10;
-        fadeTimer.Tick += FadeIn;
-        fadeTimer.Start();
-    }
-
-    private void FadeIn(object sender, EventArgs e)
-    {
-        if (Opacity < 1 && !isClosing)
-        {
-            Opacity += 0.05;
-        }
-        else if (isClosing)
-        {
-            if (Opacity > 0)
-            {
-                Opacity -= 0.05;
-            }
-            else
-            {
-                fadeTimer.Stop();
-                Close();
-            }
-        }
-        else
-        {
-            fadeTimer.Stop();
-        }
-    }
-
-    protected override void OnFormClosing(FormClosingEventArgs e)
-    {
-        if (!isClosing)
-        {
-            e.Cancel = true;
-            isClosing = true;
-            fadeTimer.Start();
-        }
-        base.OnFormClosing(e);
-    }
-
-    protected override void OnPaintBackground(PaintEventArgs e)
-    {
-        base.OnPaintBackground(e);
-        if (ClientRectangle.Width > 0 && ClientRectangle.Height > 0)
-        {
-            using (LinearGradientBrush lgb = new LinearGradientBrush(ClientRectangle, Color.White, Color.Gray, LinearGradientMode.Vertical))
-            {
-                e.Graphics.FillRectangle(lgb, ClientRectangle);
-            }
-        }
-    }
-
-    protected override void OnMouseDown(MouseEventArgs e)
-    {
-        base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left)
-        {
-            Capture = false;
-            Message m = Message.Create(Handle, 0xA1, new IntPtr(2), IntPtr.Zero);
-            DefWndProc(ref m);
-        }
-    }
+    base.OnLoad(e);
+    GraphicsPath path = new GraphicsPath();
+    int cornerRadius = 20; // Köşe yarıçapını ayarlayabilirsiniz
+    path.AddArc(0, 0, cornerRadius, cornerRadius, 180, 90);
+    path.AddArc(Width - cornerRadius, 0, cornerRadius, cornerRadius, 270, 90);
+    path.AddArc(Width - cornerRadius, Height - cornerRadius, cornerRadius, cornerRadius, 0, 90);
+    path.AddArc(0, Height - cornerRadius, cornerRadius, cornerRadius, 90, 90);
+    path.CloseAllFigures();
+    Region = new Region(path);
 }
