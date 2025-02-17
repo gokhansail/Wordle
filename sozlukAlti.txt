@@ -1,3 +1,45 @@
+protected override void OnResize(EventArgs e)
+{
+    base.OnResize(e);
+    UpdateFormColors();
+}
+
+private void UpdateFormColors()
+{
+    if (this.ContainsFocus || WindowState != FormWindowState.Minimized)
+    {
+        // Form odaklanmışsa veya minimize edilmemişse
+        ApplyActiveColors();
+    }
+    else
+    {
+        // Form odaklanmamışsa veya minimize edilmişse
+        ApplyInactiveColors();
+    }
+}
+
+private void ApplyActiveColors()
+{
+    // Aktifken uygulanan renkler
+    using (LinearGradientBrush lgb = new LinearGradientBrush(ClientRectangle, Color.DeepSkyBlue, Color.MidnightBlue, LinearGradientMode.Vertical))
+    {
+        Graphics g = CreateGraphics();
+        g.FillRectangle(lgb, ClientRectangle);
+    }
+}
+
+private void ApplyInactiveColors()
+{
+    // Pasifken uygulanan renkler
+    using (LinearGradientBrush lgb = new LinearGradientBrush(ClientRectangle, Color.Gray, Color.DarkGray, LinearGradientMode.Vertical))
+    {
+        Graphics g = CreateGraphics();
+        g.FillRectangle(lgb, ClientRectangle);
+    }
+}
+
+
+
 using System;
 using System.ComponentModel;
 using System.Drawing;
