@@ -1,5 +1,16 @@
-Kod standartlarının ekip içinde neden önemli olduğunu aşağıdaki maddeler halinde açıklayacağım:
-	1.	Kod Okunabilirliğini Artırır – Standart bir format ile yazılmış kod, tüm ekip üyeleri tarafından kolayca okunabilir ve anlaşılabilir hale gelir.
+	•	Kod okunabilirliği: Kod standartları, kodun daha kolay okunup anlaşılmasını sağlar. Tutarlı bir format, girintileme ve isimlendirme kullanıldığında, tüm geliştiriciler kodu benzer bir şekilde yazar. Bu sayede bir geliştirici, başka bir ekip üyesinin yazdığı kodu rahatlıkla okuyabilir ve ne yaptığını hızlıca kavrayabilir. “Kod bir kez yazılır ama defalarca okunur” sözünün de işaret ettiği gibi, okunaklı kod geliştirme sürecinde zaman kazandırır ve yanlış anlamaları önler.
+	•	Yeni geliştiricilerin adaptasyonu: Kod standartları, ekibe yeni katılan geliştiricilerin kod tabanına hızlıca adapte olmasını sağlar. Projedeki tüm kod benzer kurallar ve stil altında yazıldığında, yeni gelen bir geliştirici kodun yapısını çözmek için gereksiz zaman harcamaz. Standartlar sayesinde projeye özgü alışkanlıklar ve konvansiyonlar net olduğundan, yeni üyeler kendilerini daha güvende hisseder ve çekinmeden katkı sunabilir. Sonuç olarak, yeni ekip üyeleri kısa sürede üretken hale gelerek projeye değer katmaya başlar.
+	•	Bakım ve güncelleme kolaylığı: Kod standartları, yazılımın bakımını ve güncellenmesini kolaylaştırır. Standartlara uygun olarak yazılmış kod daha anlaşılır ve düzenli olduğundan, bir özelliği değiştirmek veya bir hatayı düzeltmek gerektiğinde geliştiriciler ilgili kodu hızlıca bulabilir. Tutarlı yapı sayesinde bir değişikliğin diğer bölümlere etkisini anlamak da kolaylaşır. Bu da güncelleme yaparken hata riskini azaltır ve bakım sürecini hızlandırır.
+	•	Kod tutarlılığı: Kod standartları, projede yazılan tüm kodun tutarlı olmasını sağlar. Farklı geliştiriciler kod yazsa bile ortak standartlar nedeniyle kod sanki tek bir kişi tarafından yazılmış gibi görünür. Bu tutarlılık, proje içinde bir dosyadan diğerine geçerken geliştiricilerin yabancılık çekmemesini sağlar. Her modülde benzer bir yapı ve adlandırma ile karşılaşmak, kodun anlaşılmasını ve üzerinde çalışılmasını kolaylaştırır. Ayrıca tutarlı bir kod tabanı, kod gözden geçirme ve hata tespit süreçlerini de basitleştirir.
+	•	Ekip içi iş birliği: Kod standartları, takım içinde daha iyi bir iş birliği ortamı oluşturur. Tüm ekip üyeleri aynı kodlama kurallarına uyduğunda, adeta “aynı dilde” iletişim kurar gibi kod yazarlar. Bu, ekip içinde yanlış anlaşılmaları en aza indirir ve birlikte çalışma süreçlerini hızlandırır. Kod incelemeleri (code review) daha verimli hale gelir; çünkü tartışmalar kodun stili yerine işlevselliği üzerine odaklanabilir. Sonuç olarak, ekip üyeleri birbirlerinin kodunu rahatlıkla anlayıp üzerinde ortak çalışabilir hale gelir.
+	•	Hata ve bugları azaltma: Standartlar, yaygın hataların önüne geçerek yazılımda çıkabilecek hata sayısını azaltır. Kod standartları genellikle en iyi uygulamaları (best practices) içerdiğinden, geliştiriciler bu kurallara uyarak potansiyel hatalardan kaçınır. Örneğin, tutarlı değişken isimlendirmesi veya belirlenmiş bir hata yönetimi deseni sayesinde yanlış değişken kullanımı veya gözden kaçan istisnalar gibi problemler daha az yaşanır. Ayrıca anlaşılır ve düzenli kod, testler ve kod gözden geçirmeler sırasında hataların erken fark edilmesini kolaylaştırır. Bu sayede proje genelinde daha az hata ortaya çıkar ve yazılım kalitesi artar.
+	•	Performans ve verimlilik: Kodlama standartlarına uymak, yazılımın performansı ve geliştirme ekibinin verimliliği üzerinde olumlu etki yapar. Standartlar, gereksiz tekrarları önleyip verimli kodlama tekniklerini teşvik ettiği için uygulamanın daha verimli şekilde çalışmasına katkı sağlar. Örneğin, herkesin belirli bir algoritma yapısına veya bellek kullanımı kuralına uyması, olası performans sorunlarını en baştan engelleyebilir. Ekip açısından bakıldığında, standart bir kod yapısı sayesinde geliştiriciler kodu daha hızlı anlayıp yazabilirler. Bu da zaman kazandırır ve ekip genelinde üretkenliği artırır.
+	•	Kodun yeniden kullanılabilirliği: Kod standartları, kodun tekrar tekrar kullanılabilen modüller şeklinde yazılmasını teşvik eder. İyi tanımlanmış standartlar, geliştiricileri benzer işlevleri kopyalamak yerine ortak fonksiyonlar veya kütüphaneler oluşturmaya yönlendirir. Bu sayede bir kez yazılan bir kod parçası, ihtiyaç duyulan her yerde tekrar kullanılabilir hale gelir. Aynı işleve sahip kodu yeniden yazmaya gerek kalmaz; böylece zamandan ve efordan tasarruf edilir. Ayrıca, yeniden kullanılabilir kod projenin farklı bölümleri arasında tutarlılığı da artırır.
+	•	Test süreçlerini kolaylaştırma: Standartlar sayesinde kodun test edilmesi daha kolay ve etkili hale gelir. Tutarlı ve öngörülebilir bir kod yapısı olduğundan, test senaryolarını oluşturmak ve uygulamak daha az karmaşıktır. Kodlama standartları genellikle fonksiyonların tek bir sorumluluğu olmasını ve modülerliği teşvik eder; bu da birim testlerinin yazılmasını basitleştirir çünkü her bir parça bağımsız olarak test edilebilir. Ayrıca, kod net ve anlaşılır olduğunda, testler sırasında beklenmedik davranışlarla karşılaşma olasılığı da düşer. Böylelikle hem manuel testler hem de otomatik testler daha sorunsuz bir şekilde yürütülebilir.
+	•	Uzun vadede sürdürülebilirlik: Kod standartları, bir yazılım projesinin yıllar boyu sürdürülebilir olmasına zemin hazırlar. Ekip üyeleri değişse bile, standartlara göre yazılmış bir kod tabanı yeni gelenler tarafından kolayca anlaşılabilir ve devam ettirilebilir. Teknolojiler veya gereksinimler zaman içinde değiştiğinde, temiz ve düzenli kod bu değişikliklere uyum sağlamayı kolaylaştırır; proje gelişimini kesintisiz sürdürebilir. Buna ek olarak, tutarlı bir yaklaşım teknik borcun (technical debt) birikmesini önleyerek gelecekte büyük çaplı yeniden yazımların veya kapsamlı düzeltmelerin önüne geçer. Uzun vadede, kod standartlarına bağlı kalmak hem bakım maliyetlerini düşürür hem de yazılımın güvenilirliğini artırır.
+
+
+Kod standartlarının ekip içinde neden önemli olduğunu aşağıdaki maddeler halinde açık1.	Kod Okunabilirliğini Artırır – Standart bir format ile yazılmış kod, tüm ekip üyeleri tarafından kolayca okunabilir ve anlaşılabilir hale gelir.
 	2.	Yeni Geliştiricilerin Adaptasyonunu Kolaylaştırır – Ekibe yeni katılan geliştiriciler, belirlenmiş standartları takip ederek projeye daha hızlı uyum sağlar.
 	3.	Kodun Bakımını ve Güncellenmesini Kolaylaştırır – Standart bir yapıya sahip kod, ilerleyen zamanlarda hata düzeltme ve yeni özellik ekleme süreçlerini hızlandırır.
 	4.	Kod Tutarlılığını Sağlar – Aynı proje içinde farklı yazılımcıların aynı kurallara göre yazılım geliştirmesi, kodda tutarlılık sağlar ve kaosu önler.
@@ -131,70 +142,4 @@ public class CustomButton : Button
         base.OnPaint(pevent);
         pevent.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
         Rectangle rectSurface = ClientRectangle;
-        Rectangle rectBorder = Rectangle.Inflate(rectSurface, -borderSize, -borderSize);
-        int smoothSize = borderSize > 0 ? borderSize : 1;
-
-        using (GraphicsPath pathSurface = GetFigurePath(rectSurface, borderRadius))
-        using (GraphicsPath pathBorder = GetFigurePath(rectBorder, borderRadius - borderSize))
-        using (Pen penSurface = new Pen(Parent.BackColor, smoothSize))
-        using (Pen penBorder = new Pen(borderColor, borderSize))
-        {
-            pevent.Graphics.DrawPath(penSurface, pathSurface);
-            if (borderSize >= 1)
-                pevent.Graphics.DrawPath(penBorder, pathBorder);
-        }
-    }
-
-    protected override void OnMouseEnter(EventArgs e)
-    {
-        base.OnMouseEnter(e);
-        ColorBlend cb = new ColorBlend();
-        cb.Colors = new Color[] { hoverBackColor, ClickEffectColor };
-        cb.Positions = new float[] { 0, 1 };
-        DrawGradient(cb);
-    }
-
-    protected override void OnMouseLeave(EventArgs e)
-    {
-        base.OnMouseLeave(e);
-        Invalidate(); // Return to the original state
-    }
-
-    protected override void OnMouseDown(MouseEventArgs mevent)
-    {
-        base.OnMouseDown(mevent);
-        ColorBlend cb = new ColorBlend();
-        cb.Colors = new Color[] { ClickEffectColor, hoverBackColor };
-        cb.Positions = new float[] { 0, 1 };
-        DrawGradient(cb);
-    }
-
-    protected override void OnMouseUp(MouseEventArgs mevent)
-    {
-        base.OnMouseUp(mevent);
-        OnMouseEnter(null); // Reset to hover state
-    }
-
-    private GraphicsPath GetFigurePath(Rectangle rect, int radius)
-    {
-        GraphicsPath path = new GraphicsPath();
-        path.StartFigure();
-        path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
-        path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
-        path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
-        path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
-        path.CloseFigure();
-        return path;
-    }
-
-    private void DrawGradient(ColorBlend colorBlend)
-    {
-        using (LinearGradientBrush brush = new LinearGradientBrush(ClientRectangle, Color.Empty, Color.Empty, LinearGradientMode.Vertical))
-        {
-            brush.InterpolationColors = colorBlend;
-            Graphics g = CreateGraphics();
-            g.FillRectangle(brush, ClientRectangle);
-            g.Dispose();
-        }
-    }
-}
+        Rectangle 
