@@ -1,4 +1,166 @@
 using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using Kitware.VTK;
+
+namespace VTKBoxSelectionApp
+{
+    public partial class MainForm : Form
+    {
+        private vtkRenderer renderer;
+        private vtkRenderWindow renderWindow;
+        private vtkRenderWindowInteractor interactor;
+        private vtkAreaPicker areaPicker;
+        private List<vtkActor> quadActors = new List<vtkActor>(); // Dörtgen aktörleri
+        private List<vtkActor> selectedActors = new List<vtkActor>(); // Seçili dörtgenler
+
+        public MainForm()
+        {
+            InitializeComponent();
+            InitializeVTK();
+            InitializeSelection();
+        }
+
+        private void InitializeVTK()
+        {
+            renderWindow = renderWindowControl1.RenderWindow;
+            renderer = vtkRenderer.New();
+            renderWindow.AddRenderer(renderer);
+
+            // 🔹 Dikdörtgen prizmayı 4x4 grid şeklinde oluşturalım
+            int gridX = 4, gridY = 4;
+            double width = 5.0, height = 3.0;
+
+            vtkPoints points = vtkPoints.New();
+            vtkCellArray quads = vtkCellArray.New();
+
+            // 🔹 Grid noktalarını oluştur
+            for (int i = 0; i <= gridX; i++)
+            {
+                for (int j = 0; j <= gridY; j++)
+                {
+                    points.InsertNextPoint(i * (width / gridX), j * (height / gridY), 0.0);
+                }
+            }
+
+            // 🔹 Dörtgenleri oluştur (Mesh)
+            for (int i = 0; i < gridX; i++)
+            {
+                for (int j = 0; j < gridY; j++)
+                {
+                    int p1 = i * (gridY + 1) + j;
+                    int p2 = p1 + 1;
+                    int p3 = p2 + gridY;
+                    int p4 = p3 + 1;
+
+                    vtkQuad quad = vtkQuad.New();
+                    quad.GetPointIds().SetId(0, p1);
+                    quad.GetPointIds().SetId(1, p2);
+                    quad.GetPointIds().SetId(2, p4);
+                    quad.GetPointIds().SetId(3, p3);
+
+                    quads.InsertNextCell(quad);
+                }
+            }
+
+            // 🔹 PolyData oluştur
+            vtkPolyData polyData = vtkPolyData.New();
+            polyData.SetPoints(points);
+            polyData.SetPolys(quads);
+
+            // 🔹 Mesh için her dörtgeni ayrı bir actor olarak oluştur
+            for (int i = 0; i < quads.GetNumberOfCells(); i++)
+            {
+                vtkCellArray singleQuad = vtkCellArray.New();
+                singleQuad.InsertNextCell(quads.GetCell(i));
+
+                vtkPolyData singlePolyData = vtkPolyData.New();
+                singlePolyData.SetPoints(points);
+                singlePolyData.SetPolys(singleQuad);
+
+                vtkPolyDataMapper mapper = vtkPolyDataMapper.New();
+                mapper.SetInput(singlePolyData);
+
+                vtkActor actor = vtkActor.New();
+                actor.SetMapper(mapper);
+                actor.GetProperty().SetColor(1.0, 0.0, 0.0); // Başlangıçta kırmızı
+
+                quadActors.Add(actor);
+                renderer.AddActor(actor);
+            }
+
+            // 🔹 Nodelar için küçük küreler ekleyelim
+            for (int i = 0; i < points.GetNumberOfPoints(); i++)
+            {
+                double[] p = points.GetPoint(i);
+
+                vtkSphereSource sphereSource = vtkSphereSource.New();
+                sphereSource.SetRadius(0.05);
+                sphereSource.SetCenter(p[0], p[1], p[2]);
+                sphereSource.Update();
+
+                vtkPolyDataMapper sphereMapper = vtkPolyDataMapper.New();
+                sphereMapper.SetInputConnection(sphereSource.GetOutputPort());
+
+                vtkActor sphereActor = vtkActor.New();
+                sphereActor.SetMapper(sphereMapper);
+                sphereActor.GetProperty().SetColor(0.0, 1.0, 0.0); // Yeşil nodelar
+
+                renderer.AddActor(sphereActor);
+            }
+
+            renderer.SetBackground(0.2, 0.3, 0.4);
+            renderer.ResetCamera();
+        }
+
+        private void InitializeSelection()
+        {
+            interactor = renderWindow.GetInteractor();
+            areaPicker = vtkAreaPicker.New();
+            interactor.SetPicker(areaPicker);
+
+            // 🔹 Mouse Seçim Olayları
+            interactor.LeftButtonPressEvt += OnLeftButtonPress;
+            interactor.RightButtonPressEvt += OnRightButtonPress;
+        }
+
+        private void OnLeftButtonPress(vtkObject sender, vtkObjectEventArgs e)
+        {
+            int[] clickPos = interactor.GetEventPosition();
+            areaPicker.AreaPick(clickPos[0] - 10, clickPos[1] - 10, clickPos[0] + 10, clickPos[1] + 10, renderer);
+
+            vtkActor selectedActor = areaPicker.GetActor();
+            if (selectedActor != null)
+            {
+                if (!selectedActors.Contains(selectedActor))
+                {
+                    selectedActor.GetProperty().SetColor(0.0, 1.0, 0.0); // Seçili yüzey yeşil olur
+                    selectedActors.Add(selectedActor);
+                }
+                renderWindow.Render();
+            }
+        }
+
+        private void OnRightButtonPress(vtkObject sender, vtkObjectEventArgs e)
+        {
+            // 🔹 Sağ tıklamada seçimleri sıfırla
+            foreach (var actor in selectedActors)
+            {
+                actor.GetProperty().SetColor(1.0, 0.0, 0.0); // Kırmızıya geri dön
+            }
+            selectedActors.Clear();
+            renderWindow.Render();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            renderWindowControl1.RenderWindow.Render();
+        }
+    }
+}
+
+
+using System;
 using System.Windows.Forms;
 using Kitware.VTK;
 
