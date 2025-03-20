@@ -2,7 +2,111 @@ using System;
 using System.Windows.Forms;
 using Kitware.VTK;
 
-public class VTKTriangleForm : Form
+public class VTKBoxSelectionForm : Form
+{
+    private RenderWindowControl renderWindowControl;
+    private vtkRenderer renderer;
+    private vtkRenderWindow renderWindow;
+    private vtkRenderWindowInteractor interactor;
+    private vtkHardwareSelector selector;
+
+    public VTKBoxSelectionForm()
+    {
+        // VTK Render Kontrolünü başlat
+        renderWindowControl = new RenderWindowControl
+        {
+            Dock = DockStyle.Fill
+        };
+        this.Controls.Add(renderWindowControl);
+
+        InitializeVTK();
+        InitializeSelection();
+    }
+
+    private void InitializeVTK()
+    {
+        // Render Window ve Renderer oluştur
+        renderWindow = renderWindowControl.RenderWindow;
+        renderer = vtkRenderer.New();
+        renderWindow.AddRenderer(renderer);
+
+        // Örnek olarak birkaç üçgen ekleyelim
+        vtkPoints points = vtkPoints.New();
+        points.InsertNextPoint(0.0, 0.0, 0.0);
+        points.InsertNextPoint(1.0, 0.0, 0.0);
+        points.InsertNextPoint(0.5, 1.0, 0.0);
+
+        vtkTriangle triangle = vtkTriangle.New();
+        triangle.GetPointIds().SetId(0, 0);
+        triangle.GetPointIds().SetId(1, 1);
+        triangle.GetPointIds().SetId(2, 2);
+
+        vtkCellArray triangles = vtkCellArray.New();
+        triangles.InsertNextCell(triangle);
+
+        vtkPolyData polyData = vtkPolyData.New();
+        polyData.SetPoints(points);
+        polyData.SetPolys(triangles);
+
+        vtkPolyDataMapper mapper = vtkPolyDataMapper.New();
+        mapper.SetInput(polyData);
+
+        vtkActor actor = vtkActor.New();
+        actor.SetMapper(mapper);
+        renderer.AddActor(actor);
+
+        renderer.SetBackground(0.2, 0.3, 0.4);
+        renderer.ResetCamera();
+    }
+
+    private void InitializeSelection()
+    {
+        // Interactor (Kullanıcı etkileşimi) başlat
+        interactor = renderWindow.GetInteractor();
+
+        // Hardware Selector ayarı
+        selector = vtkHardwareSelector.New();
+        selector.SetRenderer(renderer);
+
+        // Mouse Etkinliği İçin Olay Bağlantısı
+        interactor.LeftButtonPressEvt += OnLeftButtonPress;
+    }
+
+    private void OnLeftButtonPress(vtkObject sender, vtkObjectEventArgs e)
+    {
+        int[] clickPos = interactor.GetEventPosition();
+
+        selector.SetArea(clickPos[0] - 5, clickPos[1] - 5, clickPos[0] + 5, clickPos[1] + 5);
+        selector.SetFieldAssociation(vtkDataObject.FIELD_ASSOCIATION_CELLS);
+        
+        vtkSelection selection = selector.Select();
+        if (selection.GetNumberOfNodes() > 0)
+        {
+            Console.WriteLine("Seçim başarılı! Yalnızca ekrandaki görünen elementler seçildi.");
+        }
+        else
+        {
+            Console.WriteLine("Hiçbir element seçilmedi.");
+        }
+    }
+
+    [STAThread]
+    static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new VTKBoxSelectionForm());
+    }
+}
+
+
+Kitware.VTK;
+
+public class VTKTriangleForm
+
+using System;
+using System.Windows.Forms;
+using  : Form
 {
     private RenderWindowControl renderWindowControl;
 
