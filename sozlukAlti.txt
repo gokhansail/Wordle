@@ -1,3 +1,75 @@
+using System;
+using System.Windows.Forms;
+using Kitware.VTK;
+
+public class VTKTriangleForm : Form
+{
+    private RenderWindowControl renderWindowControl;
+
+    public VTKTriangleForm()
+    {
+        renderWindowControl = new RenderWindowControl
+        {
+            Dock = DockStyle.Fill
+        };
+        this.Controls.Add(renderWindowControl);
+        InitializeVTK();
+    }
+
+    private void InitializeVTK()
+    {
+        // 1️⃣ VTK RenderWindow ve Renderer oluştur
+        vtkRenderWindow renderWindow = renderWindowControl.RenderWindow;
+        vtkRenderer renderer = vtkRenderer.New();
+        renderWindow.AddRenderer(renderer);
+
+        // 2️⃣ Üçgenin köşe noktalarını tanımla
+        vtkPoints points = vtkPoints.New();
+        points.InsertNextPoint(0.0, 0.0, 0.0);  // Nokta 0
+        points.InsertNextPoint(1.0, 0.0, 0.0);  // Nokta 1
+        points.InsertNextPoint(0.5, 1.0, 0.0);  // Nokta 2
+
+        // 3️⃣ Üçgen oluştur
+        vtkTriangle triangle = vtkTriangle.New();
+        triangle.GetPointIds().SetId(0, 0);
+        triangle.GetPointIds().SetId(1, 1);
+        triangle.GetPointIds().SetId(2, 2);
+
+        // 4️⃣ Üçgeni içeren bir hücre (cell) dizisi oluştur
+        vtkCellArray triangles = vtkCellArray.New();
+        triangles.InsertNextCell(triangle);
+
+        // 5️⃣ PolyData nesnesi oluştur ve noktalar ile üçgeni ekle
+        vtkPolyData polyData = vtkPolyData.New();
+        polyData.SetPoints(points);
+        polyData.SetPolys(triangles);
+
+        // 6️⃣ Mapper ve Actor oluştur
+        vtkPolyDataMapper mapper = vtkPolyDataMapper.New();
+        mapper.SetInput(polyData);
+
+        vtkActor actor = vtkActor.New();
+        actor.SetMapper(mapper);
+        actor.GetProperty().SetColor(1.0, 0.0, 0.0); // Kırmızı renk
+
+        // 7️⃣ Renderer'a üçgeni ekleyip sahneyi göster
+        renderer.AddActor(actor);
+        renderer.SetBackground(0.2, 0.3, 0.4); // Arka plan rengi (mavi tonları)
+        renderer.ResetCamera();
+    }
+
+    [STAThread]
+    static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new VTKTriangleForm());
+    }
+}
+
+
+
+
 1. Genel Kodlama Standartları
 	•	Girintileme ve Satır Formatı: Tüm girintiler 4 boşluk karakteri ile yapılmalı, sekme (tab) karakteri kullanılmamalıdır ￼. Kod blokları ve alt bloklar tutarlı şekilde hizalanmalı; uzun satırlar okunabilirlik için genelde 100 karakteri geçmemelidir ￼. Her bir kod satırında en fazla bir ifade bulunmalı, bir satırda birden fazla komut veya tanım tanımlanmamalıdır ￼.
 	•	Köşeli Parantez (Brace) Stili: C#’ta yaygın olarak Allman stili benimsenmelidir: Açma { ve kapama } süslü parantezleri kendi satırlarında olmalı, mevcut blok girintisi hizasında konumlanmalıdır ￼. Tek satırlık if/else gibi yapılar dahi süslü parantez içinde yazılmalıdır (ileride kod genişleyebileceği için). Ayrıca, if-else/try-catch bloklarında kapanan parantez ile sonraki anahtar kelime (else/catch gibi) aynı satıra yazılmamalıdır.
