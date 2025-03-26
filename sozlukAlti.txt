@@ -6,75 +6,89 @@ namespace vtkDenemeler
 {
     public partial class mainForm : Form
     {
-        private vtkRenderWindowControl renderWindowControl;
+        private RenderWindowControl renderWindowControl;
 
         public mainForm()
         {
             InitializeComponent();
             InitializeVTKRenderWindow();
-            DrawCube();
+            this.Load += mainForm_Load;
         }
 
         private void InitializeVTKRenderWindow()
         {
-            renderWindowControl = new vtkRenderWindowControl
+            renderWindowControl = new RenderWindowControl
             {
                 Dock = DockStyle.Fill
             };
             this.Controls.Add(renderWindowControl);
         }
 
-        private void DrawCube()
+        private void mainForm_Load(object sender, EventArgs e)
         {
-            vtkUnstructuredGrid grid = CreateCubeUnstructuredGrid();
-            vtkActor actor = CreateActorFromGrid(grid);
-            SetupRenderer(actor);
+            DrawMeshCube(resX: 2, resY: 2, resZ: 2); // 2x2x2 = 8 elemanlı küp
         }
 
-        private vtkUnstructuredGrid CreateCubeUnstructuredGrid()
+        private void DrawMeshCube(int resX, int resY, int resZ)
         {
-            // 8 köşe noktası
-            double[,] nodeCoords = new double[8, 3]
-            {
-                { 0, 0, 0 }, { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 },
-                { 0, 0, 1 }, { 1, 0, 1 }, { 1, 1, 1 }, { 0, 1, 1 }
-            };
-
             vtkPoints points = vtkPoints.New();
-            for (int i = 0; i < 8; i++)
-                points.InsertNextPoint(nodeCoords[i, 0], nodeCoords[i, 1], nodeCoords[i, 2]);
-
-            vtkHexahedron hex = vtkHexahedron.New();
-            for (int i = 0; i < 8; i++)
-                hex.GetPointIds().SetId(i, i); // Nokta sıralaması önemli
-
             vtkUnstructuredGrid grid = vtkUnstructuredGrid.New();
+
+            int[,,] nodeIndex = new int[resX + 1, resY + 1, resZ + 1];
+
+            int pointId = 0;
+            // Noktaları oluştur
+            for (int z = 0; z <= resZ; z++)
+            {
+                for (int y = 0; y <= resY; y++)
+                {
+                    for (int x = 0; x <= resX; x++)
+                    {
+                        points.InsertNextPoint(x, y, z);
+                        nodeIndex[x, y, z] = pointId++;
+                    }
+                }
+            }
+
+            // Elementleri oluştur (Hexahedron)
+            for (int z = 0; z < resZ; z++)
+            {
+                for (int y = 0; y < resY; y++)
+                {
+                    for (int x = 0; x < resX; x++)
+                    {
+                        vtkHexahedron hex = vtkHexahedron.New();
+
+                        hex.GetPointIds().SetId(0, nodeIndex[x,     y,     z]);
+                        hex.GetPointIds().SetId(1, nodeIndex[x + 1, y,     z]);
+                        hex.GetPointIds().SetId(2, nodeIndex[x + 1, y + 1, z]);
+                        hex.GetPointIds().SetId(3, nodeIndex[x,     y + 1, z]);
+                        hex.GetPointIds().SetId(4, nodeIndex[x,     y,     z + 1]);
+                        hex.GetPointIds().SetId(5, nodeIndex[x + 1, y,     z + 1]);
+                        hex.GetPointIds().SetId(6, nodeIndex[x + 1, y + 1, z + 1]);
+                        hex.GetPointIds().SetId(7, nodeIndex[x,     y + 1, z + 1]);
+
+                        grid.InsertNextCell(hex.GetCellType(), hex.GetPointIds());
+                    }
+                }
+            }
+
             grid.SetPoints(points);
-            grid.InsertNextCell(hex.GetCellType(), hex.GetPointIds());
 
-            return grid;
-        }
-
-        private vtkActor CreateActorFromGrid(vtkUnstructuredGrid grid)
-        {
             vtkDataSetMapper mapper = vtkDataSetMapper.New();
             mapper.SetInput(grid);
 
             vtkActor actor = vtkActor.New();
             actor.SetMapper(mapper);
-            actor.GetProperty().SetColor(1.0, 0.6, 0.2); // Turuncumsu renk
+            actor.GetProperty().EdgeVisibilityOn();
+            actor.GetProperty().SetEdgeColor(0, 0, 0);
+            actor.GetProperty().SetColor(1.0, 0.7, 0.4); // Açık turuncu
 
-            return actor;
-        }
-
-        private void SetupRenderer(vtkActor actor)
-        {
             vtkRenderer renderer = vtkRenderer.New();
             renderer.AddActor(actor);
-            renderer.SetBackground(0.1, 0.1, 0.2); // Koyu arka plan
+            renderer.SetBackground(0.15, 0.2, 0.25);
 
-            vtkRenderWindow renderWindow = renderWindowControl.RenderWindow;
-            renderWindow.AddRenderer(renderer);
+            renderWindowControl.RenderWindow.AddRenderer(renderer);
         }
     }
 }
