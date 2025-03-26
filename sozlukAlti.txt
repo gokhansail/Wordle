@@ -1,94 +1,45 @@
-using System;
-using System.Windows.Forms;
-using Kitware.VTK;
-
-namespace vtkDenemeler
+private async Task<List<Node>> LoadNodesFromTxtAsync(string filePath)
 {
-    public partial class mainForm : Form
+    var nodeList = new List<Node>();
+    using StreamReader reader = new StreamReader(filePath);
+    string line;
+    while ((line = await reader.ReadLineAsync()) != null)
     {
-        private RenderWindowControl renderWindowControl;
-
-        public mainForm()
+        string[] parts = line.Split(' ');
+        if (parts.Length != 4) continue;
+        nodeList.Add(new Node
         {
-            InitializeComponent();
-            InitializeVTKRenderWindow();
-            this.Load += mainForm_Load;
-        }
-
-        private void InitializeVTKRenderWindow()
-        {
-            renderWindowControl = new RenderWindowControl
-            {
-                Dock = DockStyle.Fill
-            };
-            this.Controls.Add(renderWindowControl);
-        }
-
-        private void mainForm_Load(object sender, EventArgs e)
-        {
-            DrawMeshCube(resX: 2, resY: 2, resZ: 2); // 2x2x2 = 8 elemanlı küp
-        }
-
-        private void DrawMeshCube(int resX, int resY, int resZ)
-        {
-            vtkPoints points = vtkPoints.New();
-            vtkUnstructuredGrid grid = vtkUnstructuredGrid.New();
-
-            int[,,] nodeIndex = new int[resX + 1, resY + 1, resZ + 1];
-
-            int pointId = 0;
-            // Noktaları oluştur
-            for (int z = 0; z <= resZ; z++)
-            {
-                for (int y = 0; y <= resY; y++)
-                {
-                    for (int x = 0; x <= resX; x++)
-                    {
-                        points.InsertNextPoint(x, y, z);
-                        nodeIndex[x, y, z] = pointId++;
-                    }
-                }
-            }
-
-            // Elementleri oluştur (Hexahedron)
-            for (int z = 0; z < resZ; z++)
-            {
-                for (int y = 0; y < resY; y++)
-                {
-                    for (int x = 0; x < resX; x++)
-                    {
-                        vtkHexahedron hex = vtkHexahedron.New();
-
-                        hex.GetPointIds().SetId(0, nodeIndex[x,     y,     z]);
-                        hex.GetPointIds().SetId(1, nodeIndex[x + 1, y,     z]);
-                        hex.GetPointIds().SetId(2, nodeIndex[x + 1, y + 1, z]);
-                        hex.GetPointIds().SetId(3, nodeIndex[x,     y + 1, z]);
-                        hex.GetPointIds().SetId(4, nodeIndex[x,     y,     z + 1]);
-                        hex.GetPointIds().SetId(5, nodeIndex[x + 1, y,     z + 1]);
-                        hex.GetPointIds().SetId(6, nodeIndex[x + 1, y + 1, z + 1]);
-                        hex.GetPointIds().SetId(7, nodeIndex[x,     y + 1, z + 1]);
-
-                        grid.InsertNextCell(hex.GetCellType(), hex.GetPointIds());
-                    }
-                }
-            }
-
-            grid.SetPoints(points);
-
-            vtkDataSetMapper mapper = vtkDataSetMapper.New();
-            mapper.SetInput(grid);
-
-            vtkActor actor = vtkActor.New();
-            actor.SetMapper(mapper);
-            actor.GetProperty().EdgeVisibilityOn();
-            actor.GetProperty().SetEdgeColor(0, 0, 0);
-            actor.GetProperty().SetColor(1.0, 0.7, 0.4); // Açık turuncu
-
-            vtkRenderer renderer = vtkRenderer.New();
-            renderer.AddActor(actor);
-            renderer.SetBackground(0.15, 0.2, 0.25);
-
-            renderWindowControl.RenderWindow.AddRenderer(renderer);
-        }
+            Id = int.Parse(parts[0]),
+            X = double.Parse(parts[1]),
+            Y = double.Parse(parts[2]),
+            Z = double.Parse(parts[3])
+        });
     }
+    return nodeList;
 }
+
+private async Task<List<Element>> LoadElementsFromTxtAsync(string filePath)
+{
+    var elementList = new List<Element>();
+    using StreamReader reader = new StreamReader(filePath);
+    string line;
+    while ((line = await reader.ReadLineAsync()) != null)
+    {
+        string[] parts = line.Split(' ');
+        if (parts.Length < 2) continue;
+
+        if (!Enum.TryParse(parts[0], out ElementType type)) continue;
+
+        var nodeIds = new List<int>();
+        for (int i = 1; i < parts.Length; i++)
+            nodeIds.Add(int.Parse(parts[i]));
+
+        elementList.Add(new Element
+        {
+            Type = type,
+            NodeIds = nodeIds
+        });
+    }
+    return elementList;
+}
+
