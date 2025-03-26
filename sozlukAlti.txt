@@ -1,45 +1,43 @@
-private async Task<List<Node>> LoadNodesFromTxtAsync(string filePath)
+private static readonly Dictionary<ElementType, int[]> vtkNodeOrderMap = new()
 {
-    var nodeList = new List<Node>();
-    using StreamReader reader = new StreamReader(filePath);
-    string line;
-    while ((line = await reader.ReadLineAsync()) != null)
-    {
-        string[] parts = line.Split(' ');
-        if (parts.Length != 4) continue;
-        nodeList.Add(new Node
-        {
-            Id = int.Parse(parts[0]),
-            X = double.Parse(parts[1]),
-            Y = double.Parse(parts[2]),
-            Z = double.Parse(parts[3])
-        });
-    }
-    return nodeList;
-}
+    [ElementType.tri3] = new[] { 0, 1, 2 },
+    [ElementType.tri6] = new[] { 0, 1, 2 },
 
-private async Task<List<Element>> LoadElementsFromTxtAsync(string filePath)
+    [ElementType.quad4] = new[] { 0, 1, 2, 3 },
+    [ElementType.quad8] = new[] { 0, 1, 2, 3 },
+
+    [ElementType.hexa8] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
+    [ElementType.hexa20] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
+    [ElementType.hexa27] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
+
+    [ElementType.tetra4] = new[] { 0, 1, 2, 3 },
+    [ElementType.tetra10] = new[] { 0, 1, 2, 3 },
+
+    [ElementType.pyramid5] = new[] { 0, 1, 2, 3, 4 },
+    [ElementType.pyramid13] = new[] { 0, 1, 2, 3, 4 },
+
+    [ElementType.prism6] = new[] { 5, 3, 4, 2, 0, 1 },
+    [ElementType.prism15] = new[] { 5, 3, 4, 2, 0, 1 }
+};
+
+private static readonly Dictionary<ElementType, int> vtkCellTypeMap = new()
 {
-    var elementList = new List<Element>();
-    using StreamReader reader = new StreamReader(filePath);
-    string line;
-    while ((line = await reader.ReadLineAsync()) != null)
-    {
-        string[] parts = line.Split(' ');
-        if (parts.Length < 2) continue;
+    [ElementType.tri3] = (int)VTKCellType.VTK_TRIANGLE,
+    [ElementType.tri6] = (int)VTKCellType.VTK_TRIANGLE,
 
-        if (!Enum.TryParse(parts[0], out ElementType type)) continue;
+    [ElementType.quad4] = (int)VTKCellType.VTK_QUAD,
+    [ElementType.quad8] = (int)VTKCellType.VTK_QUAD,
 
-        var nodeIds = new List<int>();
-        for (int i = 1; i < parts.Length; i++)
-            nodeIds.Add(int.Parse(parts[i]));
+    [ElementType.hexa8] = (int)VTKCellType.VTK_HEXAHEDRON,
+    [ElementType.hexa20] = (int)VTKCellType.VTK_HEXAHEDRON,
+    [ElementType.hexa27] = (int)VTKCellType.VTK_HEXAHEDRON,
 
-        elementList.Add(new Element
-        {
-            Type = type,
-            NodeIds = nodeIds
-        });
-    }
-    return elementList;
-}
+    [ElementType.tetra4] = (int)VTKCellType.VTK_TETRA,
+    [ElementType.tetra10] = (int)VTKCellType.VTK_TETRA,
 
+    [ElementType.pyramid5] = (int)VTKCellType.VTK_PYRAMID,
+    [ElementType.pyramid13] = (int)VTKCellType.VTK_PYRAMID,
+
+    [ElementType.prism6] = (int)VTKCellType.VTK_WEDGE,
+    [ElementType.prism15] = (int)VTKCellType.VTK_WEDGE
+};
