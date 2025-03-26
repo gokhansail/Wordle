@@ -1,45 +1,49 @@
-private void GetVTKCellInfo(ElementType type, out int vtkCellType, out int[] nodeOrder)
+private void VisualizeModel(List<Node> nodeList, List<Element> elementList)
 {
-    switch (type)
+    vtkPoints points = vtkPoints.New();
+    Dictionary<int, int> nodeIdToPointIndex = new Dictionary<int, int>();
+
+    // 🔹 1. Node'ları vtkPoints'e ekle
+    foreach (var node in nodeList)
     {
-        case ElementType.tri3:
-        case ElementType.tri6:
-            vtkCellType = (int)VTKCellType.VTK_TRIANGLE;
-            nodeOrder = new[] { 0, 1, 2 };
-            break;
-
-        case ElementType.quad4:
-        case ElementType.quad8:
-            vtkCellType = (int)VTKCellType.VTK_QUAD;
-            nodeOrder = new[] { 0, 1, 2, 3 };
-            break;
-
-        case ElementType.hexa8:
-        case ElementType.hexa20:
-        case ElementType.hexa27:
-            vtkCellType = (int)VTKCellType.VTK_HEXAHEDRON;
-            nodeOrder = new[] { 0, 3, 7, 4, 1, 2, 6, 5 };
-            break;
-
-        case ElementType.tetra4:
-        case ElementType.tetra10:
-            vtkCellType = (int)VTKCellType.VTK_TETRA;
-            nodeOrder = new[] { 0, 1, 2, 3 };
-            break;
-
-        case ElementType.pyramid5:
-        case ElementType.pyramid13:
-            vtkCellType = (int)VTKCellType.VTK_PYRAMID;
-            nodeOrder = new[] { 0, 1, 2, 3, 4 };
-            break;
-
-        case ElementType.prism6:
-        case ElementType.prism15:
-            vtkCellType = (int)VTKCellType.VTK_WEDGE;
-            nodeOrder = new[] { 5, 3, 4, 2, 0, 1 };
-            break;
-
-        default:
-            throw new NotSupportedException("Desteklenmeyen element tipi: " + type);
+        int idx = points.InsertNextPoint(node.X, node.Y, node.Z);
+        nodeIdToPointIndex[node.Id] = idx;
     }
+
+    // 🔹 2. UnstructuredGrid oluştur
+    vtkUnstructuredGrid grid = vtkUnstructuredGrid.New();
+    grid.SetPoints(points);
+
+    // 🔹 3. Elementleri VTK hücresine çevirip ekle
+    foreach (var element in elementList)
+    {
+        int vtkCellType;
+        int[] nodeOrder;
+        GetVTKCellInfo(element.Type, out vtkCellType, out nodeOrder);
+
+        vtkIdList idList = vtkIdList.New();
+        foreach (int i in nodeOrder)
+        {
+            int nodeId = element.NodeIds[i];
+            idList.InsertNextId(nodeIdToPointIndex[nodeId]);
+        }
+
+        grid.InsertNextCell(vtkCellType, idList);
+    }
+
+    // 🔹 4. Mapper, Actor, Renderer
+    vtkDataSetMapper mapper = vtkDataSetMapper.New();
+    mapper.SetInput(grid);
+
+    vtkActor actor = vtkActor.New();
+    actor.SetMapper(mapper);
+    actor.GetProperty().EdgeVisibilityOn();
+    actor.GetProperty().SetEdgeColor(0, 0, 0);
+    actor.GetProperty().SetColor(0.85, 0.65, 0.5);
+
+    vtkRenderer renderer = vtkRenderer.New();
+    renderer.AddActor(actor);
+    renderer.SetBackground(0.1, 0.15, 0.2);
+
+    renderWindowControl.RenderWindow.AddRenderer(renderer);
 }
