@@ -1,43 +1,45 @@
-private static readonly Dictionary<ElementType, int[]> vtkNodeOrderMap = new()
+private void GetVTKCellInfo(ElementType type, out int vtkCellType, out int[] nodeOrder)
 {
-    [ElementType.tri3] = new[] { 0, 1, 2 },
-    [ElementType.tri6] = new[] { 0, 1, 2 },
+    switch (type)
+    {
+        case ElementType.tri3:
+        case ElementType.tri6:
+            vtkCellType = (int)VTKCellType.VTK_TRIANGLE;
+            nodeOrder = new[] { 0, 1, 2 };
+            break;
 
-    [ElementType.quad4] = new[] { 0, 1, 2, 3 },
-    [ElementType.quad8] = new[] { 0, 1, 2, 3 },
+        case ElementType.quad4:
+        case ElementType.quad8:
+            vtkCellType = (int)VTKCellType.VTK_QUAD;
+            nodeOrder = new[] { 0, 1, 2, 3 };
+            break;
 
-    [ElementType.hexa8] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
-    [ElementType.hexa20] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
-    [ElementType.hexa27] = new[] { 0, 3, 7, 4, 1, 2, 6, 5 },
+        case ElementType.hexa8:
+        case ElementType.hexa20:
+        case ElementType.hexa27:
+            vtkCellType = (int)VTKCellType.VTK_HEXAHEDRON;
+            nodeOrder = new[] { 0, 3, 7, 4, 1, 2, 6, 5 };
+            break;
 
-    [ElementType.tetra4] = new[] { 0, 1, 2, 3 },
-    [ElementType.tetra10] = new[] { 0, 1, 2, 3 },
+        case ElementType.tetra4:
+        case ElementType.tetra10:
+            vtkCellType = (int)VTKCellType.VTK_TETRA;
+            nodeOrder = new[] { 0, 1, 2, 3 };
+            break;
 
-    [ElementType.pyramid5] = new[] { 0, 1, 2, 3, 4 },
-    [ElementType.pyramid13] = new[] { 0, 1, 2, 3, 4 },
+        case ElementType.pyramid5:
+        case ElementType.pyramid13:
+            vtkCellType = (int)VTKCellType.VTK_PYRAMID;
+            nodeOrder = new[] { 0, 1, 2, 3, 4 };
+            break;
 
-    [ElementType.prism6] = new[] { 5, 3, 4, 2, 0, 1 },
-    [ElementType.prism15] = new[] { 5, 3, 4, 2, 0, 1 }
-};
+        case ElementType.prism6:
+        case ElementType.prism15:
+            vtkCellType = (int)VTKCellType.VTK_WEDGE;
+            nodeOrder = new[] { 5, 3, 4, 2, 0, 1 };
+            break;
 
-private static readonly Dictionary<ElementType, int> vtkCellTypeMap = new()
-{
-    [ElementType.tri3] = (int)VTKCellType.VTK_TRIANGLE,
-    [ElementType.tri6] = (int)VTKCellType.VTK_TRIANGLE,
-
-    [ElementType.quad4] = (int)VTKCellType.VTK_QUAD,
-    [ElementType.quad8] = (int)VTKCellType.VTK_QUAD,
-
-    [ElementType.hexa8] = (int)VTKCellType.VTK_HEXAHEDRON,
-    [ElementType.hexa20] = (int)VTKCellType.VTK_HEXAHEDRON,
-    [ElementType.hexa27] = (int)VTKCellType.VTK_HEXAHEDRON,
-
-    [ElementType.tetra4] = (int)VTKCellType.VTK_TETRA,
-    [ElementType.tetra10] = (int)VTKCellType.VTK_TETRA,
-
-    [ElementType.pyramid5] = (int)VTKCellType.VTK_PYRAMID,
-    [ElementType.pyramid13] = (int)VTKCellType.VTK_PYRAMID,
-
-    [ElementType.prism6] = (int)VTKCellType.VTK_WEDGE,
-    [ElementType.prism15] = (int)VTKCellType.VTK_WEDGE
-};
+        default:
+            throw new NotSupportedException("Desteklenmeyen element tipi: " + type);
+    }
+}
