@@ -1,59 +1,53 @@
-private void InitializeToolStrip()
+public class CustomInteractorStyle : vtkInteractorStyleRubberBandPick
 {
-    // ToolStripContainer zaten Designer'da üst kısma eklendi varsayılıyor
-    ToolStrip toolStrip = new ToolStrip();
-    toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+    private readonly vtkRenderWindowInteractor interactor;
+    private readonly vtkRenderer renderer;
+    private readonly Selector selector;
+    private readonly vtkUnstructuredGrid grid;
+    private readonly Dictionary<int, vtkActor> elementActors;
 
-    // ▼ Selection Mode (Box / Single)
-    ToolStripDropDownButton selectionModeButton = new ToolStripDropDownButton("Seçim Modu");
-    ToolStripMenuItem boxItem = new ToolStripMenuItem("Box Selection");
-    ToolStripMenuItem singleItem = new ToolStripMenuItem("Single Selection");
-
-    boxItem.Click += (s, e) =>
+    public CustomInteractorStyle(vtkRenderWindowInteractor interactor, vtkRenderer renderer, vtkUnstructuredGrid grid, Selector selector, Dictionary<int, vtkActor> elementActors)
     {
-        selector.Mode = SelectionMode.Box;
-        boxItem.Checked = true;
-        singleItem.Checked = false;
-    };
+        this.interactor = interactor;
+        this.renderer = renderer;
+        this.grid = grid;
+        this.selector = selector;
+        this.elementActors = elementActors;
 
-    singleItem.Click += (s, e) =>
+        SetCurrentRenderer(renderer);
+    }
+
+    public override void OnLeftButtonUp()
     {
-        selector.Mode = SelectionMode.Single;
-        singleItem.Checked = true;
-        boxItem.Checked = false;
-    };
+        base.OnLeftButtonUp();
 
-    boxItem.Checked = true; // default olarak box açık
-    selectionModeButton.DropDownItems.Add(boxItem);
-    selectionModeButton.DropDownItems.Add(singleItem);
+        if (selector.Mode != SelectionMode.Box)
+            return;
 
-    // ▼ Selection Target (Node / Element)
-    ToolStripDropDownButton selectionTargetButton = new ToolStripDropDownButton("Seçim Tipi");
-    ToolStripMenuItem nodeItem = new ToolStripMenuItem("Node");
-    ToolStripMenuItem elementItem = new ToolStripMenuItem("Element");
+        // Alan seçimi yap
+        vtkRenderedAreaPicker areaPicker = vtkRenderedAreaPicker.New();
+        areaPicker.Pick(0, 0, 0, 0, renderer); // Mouse koordinatları gerçek kodda alınacak
 
-    nodeItem.Click += (s, e) =>
-    {
-        selector.Target = SelectionTarget.Node;
-        nodeItem.Checked = true;
-        elementItem.Checked = false;
-    };
+        vtkExtractSelectedFrustum frustumFilter = vtkExtractSelectedFrustum.New();
+        frustumFilter.SetInput(grid);
+        frustumFilter.SetFrustum(areaPicker.GetFrustum());
+        frustumFilter.PreserveTopologyOn();
+        frustumFilter.Update();
 
-    elementItem.Click += (s, e) =>
-    {
-        selector.Target = SelectionTarget.Element;
-        elementItem.Checked = true;
-        nodeItem.Checked = false;
-    };
+        vtkUnstructuredGrid selected = frustumFilter.GetOutput();
 
-    elementItem.Checked = true; // default olarak element açık
-    selectionTargetButton.DropDownItems.Add(nodeItem);
-    selectionTargetButton.DropDownItems.Add(elementItem);
+        // Tüm actor'ları resetle (orijinal renk)
+        foreach (var kvp in elementActors)
+            kvp.Value.GetProperty().SetColor(0.85, 0.65, 0.5);
 
-    // ToolStrip'e butonları ekle
-    toolStrip.Items.Add(selectionModeButton);
-    toolStrip.Items.Add(selectionTargetButton);
+        // Seçilen hücreleri renklendir
+        for (int i = 0; i < selected.GetNumberOfCells(); i++)
+        {
+            int globalCellId = selected.GetCellData().GetGlobalIds().GetValue(i);
+            if (elementActors.ContainsKey(globalCellId))
+                elementActors[globalCellId].GetProperty().SetColor(0.2, 0.9, 0.2); // Yeşil
+        }
 
-    // ToolStripContainer'a ekle
-    toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip);
+        interactor.Render();
+    }
 }
