@@ -1,39 +1,46 @@
-public static string NormalizeInput(string input)
+private void RenderWindowControl_MouseUp(object sender, MouseEventArgs e)
 {
-    if (string.IsNullOrEmpty(input))
-        return string.Empty;
+    if (e.Button != MouseButtons.Left || selector.Mode != SelectionMode.Box || selector.Target != SelectionTarget.Element)
+        return;
 
-    // Türkçe karakter dönüşümleri
-    Dictionary<char, char> turkishCharMap = new Dictionary<char, char>
+    int endX = e.X;
+    int endY = e.Y;
+
+    var picker = vtkRenderedAreaPicker.New();
+    picker.AreaPick(startX, startY, endX, endY, renderer);
+
+    var frustumFilter = vtkExtractSelectedFrustum.New();
+    frustumFilter.SetInput(grid);
+    frustumFilter.SetFrustum(picker.GetFrustum());
+    frustumFilter.PreserveTopologyOn();
+    frustumFilter.Update();
+
+    var selected = vtkUnstructuredGrid.SafeDownCast(frustumFilter.GetOutput());
+
+    var highlightArray = vtkIntArray.New();
+    highlightArray.SetName("Highlight");
+    highlightArray.SetNumberOfComponents(1);
+    highlightArray.SetNumberOfTuples(grid.GetNumberOfCells());
+
+    for (int i = 0; i < grid.GetNumberOfCells(); i++)
+        highlightArray.SetValue(i, 0);
+
+    var globalIds = selected.GetCellData().GetGlobalIds();
+    if (globalIds != null)
     {
-        {'ç', 'c'}, {'Ç', 'C'},
-        {'ğ', 'g'}, {'Ğ', 'G'},
-        {'ı', 'i'}, {'İ', 'I'},
-        {'ö', 'o'}, {'Ö', 'O'},
-        {'ş', 's'}, {'Ş', 'S'},
-        {'ü', 'u'}, {'Ü', 'U'}
-    };
-
-    StringBuilder sb = new StringBuilder();
-
-    foreach (char c in input)
-    {
-        char ch = c;
-
-        // Türkçe karakterse dönüştür
-        if (turkishCharMap.ContainsKey(c))
-            ch = turkishCharMap[c];
-
-        // ASCII karakter mi?
-        if (ch <= 127)
+        for (int i = 0; i < selected.GetNumberOfCells(); i++)
         {
-            if (ch == ' ')
-                sb.Append('_'); // boşluk yerine _
-            else
-                sb.Append(ch);  // normal karakter
+            int globalId = (int)globalIds.GetComponent(i, 0);
+            highlightArray.SetValue(globalId, 1);
         }
-        // ASCII dışıysa hiç ekleme (ignore)
     }
 
-    return sb.ToString();
+    grid.GetCellData().AddArray(highlightArray);
+    grid.GetCellData().SetScalars(highlightArray);
+
+    mapper.SetScalarRange(0, 1);
+    mapper.SetScalarModeToUseCellData();
+    mapper.ScalarVisibilityOn();
+
+    renderWindowControl.RenderWindow.Render();
 }
