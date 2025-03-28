@@ -1,22 +1,24 @@
-private void RenderWindowControl_MouseUp(object sender, MouseEventArgs e)
+private void SurfaceSelectElements(int startX, int startY, int endX, int endY)
 {
-    if (e.Button != MouseButtons.Left || selector.Mode != SelectionMode.Box || selector.Target != SelectionTarget.Element)
-        return;
+    // 1. Yüzey meshini çıkar
+    var geometryFilter = vtkGeometryFilter.New();
+    geometryFilter.SetInput(grid);
+    geometryFilter.Update();
+    var surfaceGrid = geometryFilter.GetOutput();
 
-    int endX = e.X;
-    int endY = e.Y;
-
+    // 2. Seçim kutusu uygula (sadece yüzeye)
     var picker = vtkRenderedAreaPicker.New();
     picker.AreaPick(startX, startY, endX, endY, renderer);
 
     var frustumFilter = vtkExtractSelectedFrustum.New();
-    frustumFilter.SetInput(grid);
+    frustumFilter.SetInput(surfaceGrid);
     frustumFilter.SetFrustum(picker.GetFrustum());
-    frustumFilter.PreserveTopologyOn();
+    frustumFilter.PreserveTopologyOff();
     frustumFilter.Update();
 
     var selected = vtkUnstructuredGrid.SafeDownCast(frustumFilter.GetOutput());
 
+    // 3. Orijinal grid'de highlight için scalar array hazırla
     var highlightArray = vtkIntArray.New();
     highlightArray.SetName("Highlight");
     highlightArray.SetNumberOfComponents(1);
@@ -25,6 +27,7 @@ private void RenderWindowControl_MouseUp(object sender, MouseEventArgs e)
     for (int i = 0; i < grid.GetNumberOfCells(); i++)
         highlightArray.SetValue(i, 0);
 
+    // 4. Seçilen yüzey hücrelerini işaretle
     var globalIds = selected.GetCellData().GetGlobalIds();
     if (globalIds != null)
     {
@@ -35,6 +38,7 @@ private void RenderWindowControl_MouseUp(object sender, MouseEventArgs e)
         }
     }
 
+    // 5. Grid'e scalarları ata ve görselleştir
     grid.GetCellData().AddArray(highlightArray);
     grid.GetCellData().SetScalars(highlightArray);
 
