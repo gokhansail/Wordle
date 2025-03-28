@@ -1,51 +1,39 @@
-public override void OnLeftButtonUp()
+public static string NormalizeInput(string input)
 {
-    int endX = this.GetInteractor().GetEventPosition()[0];
-    int endY = this.GetInteractor().GetEventPosition()[1];
+    if (string.IsNullOrEmpty(input))
+        return string.Empty;
 
-    if (selector.Mode != SelectionMode.Box || selector.Target != SelectionTarget.Element)
-        return;
-
-    vtkRenderedAreaPicker picker = vtkRenderedAreaPicker.New();
-    picker.AreaPick(startX, startY, endX, endY, renderer);
-
-    vtkExtractSelectedFrustum frustumFilter = vtkExtractSelectedFrustum.New();
-    frustumFilter.SetInput(grid);
-    frustumFilter.SetFrustum(picker.GetFrustum());
-    frustumFilter.PreserveTopologyOn();
-    frustumFilter.Update();
-
-    vtkUnstructuredGrid selected = vtkUnstructuredGrid.SafeDownCast(frustumFilter.GetOutput());
-
-    int cellCount = grid.GetNumberOfCells();
-    vtkIntArray highlightArray = vtkIntArray.New();
-    highlightArray.SetName("Highlight");
-    highlightArray.SetNumberOfComponents(1);
-    highlightArray.SetNumberOfTuples(cellCount);
-
-    // Tüm hücreleri sıfırla
-    for (int i = 0; i < cellCount; i++)
-        highlightArray.SetValue(i, 0);
-
-    // Seçilen hücreleri işaretle (1 yap)
-    vtkDataArray globalIds = selected.GetCellData().GetGlobalIds();
-    if (globalIds != null)
+    // Türkçe karakter dönüşümleri
+    Dictionary<char, char> turkishCharMap = new Dictionary<char, char>
     {
-        for (int i = 0; i < selected.GetNumberOfCells(); i++)
+        {'ç', 'c'}, {'Ç', 'C'},
+        {'ğ', 'g'}, {'Ğ', 'G'},
+        {'ı', 'i'}, {'İ', 'I'},
+        {'ö', 'o'}, {'Ö', 'O'},
+        {'ş', 's'}, {'Ş', 'S'},
+        {'ü', 'u'}, {'Ü', 'U'}
+    };
+
+    StringBuilder sb = new StringBuilder();
+
+    foreach (char c in input)
+    {
+        char ch = c;
+
+        // Türkçe karakterse dönüştür
+        if (turkishCharMap.ContainsKey(c))
+            ch = turkishCharMap[c];
+
+        // ASCII karakter mi?
+        if (ch <= 127)
         {
-            int globalId = (int)globalIds.GetComponent(i, 0);
-            highlightArray.SetValue(globalId, 1);
+            if (ch == ' ')
+                sb.Append('_'); // boşluk yerine _
+            else
+                sb.Append(ch);  // normal karakter
         }
+        // ASCII dışıysa hiç ekleme (ignore)
     }
 
-    // Scalar array'i grid'e ata ve aktif yap
-    grid.GetCellData().AddArray(highlightArray);
-    grid.GetCellData().SetScalars(highlightArray);
-
-    // Mapper'da scalar görünürlüğü aktif olmalı (mapper dışarıdan geliyor)
-    mapper.SetScalarRange(0, 1);
-    mapper.SetScalarModeToUseCellData();
-    mapper.ScalarVisibilityOn();
-
-    this.GetInteractor().Render();
+    return sb.ToString();
 }
