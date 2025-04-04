@@ -1,50 +1,96 @@
-private void SurfaceSelectElements(int startX, int startY, int endX, int endY)
+using System;
+using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
+[DefaultEvent("CheckedChanged")]
+public class CustomCheckBox : CheckBox
 {
-    // 1. Yüzey meshini çıkar
-    var geometryFilter = vtkGeometryFilter.New();
-    geometryFilter.SetInput(grid);
-    geometryFilter.Update();
-    var surfaceGrid = geometryFilter.GetOutput();
+    private Color hoverBackColor = Color.LightGray;
+    private Color hoverForeColor = Color.DarkGray;
+    private int cornerRadius = 10;
+    private Color borderColor = Color.Black;
+    private int borderSize = 1;
 
-    // 2. Seçim kutusu uygula (sadece yüzeye)
-    var picker = vtkRenderedAreaPicker.New();
-    picker.AreaPick(startX, startY, endX, endY, renderer);
-
-    var frustumFilter = vtkExtractSelectedFrustum.New();
-    frustumFilter.SetInput(surfaceGrid);
-    frustumFilter.SetFrustum(picker.GetFrustum());
-    frustumFilter.PreserveTopologyOff();
-    frustumFilter.Update();
-
-    var selected = vtkUnstructuredGrid.SafeDownCast(frustumFilter.GetOutput());
-
-    // 3. Orijinal grid'de highlight için scalar array hazırla
-    var highlightArray = vtkIntArray.New();
-    highlightArray.SetName("Highlight");
-    highlightArray.SetNumberOfComponents(1);
-    highlightArray.SetNumberOfTuples(grid.GetNumberOfCells());
-
-    for (int i = 0; i < grid.GetNumberOfCells(); i++)
-        highlightArray.SetValue(i, 0);
-
-    // 4. Seçilen yüzey hücrelerini işaretle
-    var globalIds = selected.GetCellData().GetGlobalIds();
-    if (globalIds != null)
+    public CustomCheckBox()
     {
-        for (int i = 0; i < selected.GetNumberOfCells(); i++)
-        {
-            int globalId = (int)globalIds.GetComponent(i, 0);
-            highlightArray.SetValue(globalId, 1);
-        }
+        FlatStyle = FlatStyle.Flat;
+        this.FlatAppearance.BorderSize = 0;
     }
 
-    // 5. Grid'e scalarları ata ve görselleştir
-    grid.GetCellData().AddArray(highlightArray);
-    grid.GetCellData().SetScalars(highlightArray);
+    [Category("Appearance")]
+    [Description("Arka planın hover rengi.")]
+    public Color HoverBackColor
+    {
+        get => hoverBackColor;
+        set { hoverBackColor = value; Invalidate(); }
+    }
 
-    mapper.SetScalarRange(0, 1);
-    mapper.SetScalarModeToUseCellData();
-    mapper.ScalarVisibilityOn();
+    [Category("Appearance")]
+    [Description("Yazı renginin hover durumu.")]
+    public Color HoverForeColor
+    {
+        get => hoverForeColor;
+        set { hoverForeColor = value; Invalidate(); }
+    }
 
-    renderWindowControl.RenderWindow.Render();
+    [Category("Appearance")]
+    [Description("Köşe yarıçapı. Daha yüksek değerler daha yuvarlak köşeler oluşturur.")]
+    public int CornerRadius
+    {
+        get => cornerRadius;
+        set { cornerRadius = value; Invalidate(); }
+    }
+
+    [Category("Appearance")]
+    [Description("Kenarlık rengi.")]
+    public Color BorderColor
+    {
+        get => borderColor;
+        set { borderColor = value; Invalidate(); }
+    }
+
+    [Category("Appearance")]
+    [Description("Kenarlık kalınlığı.")]
+    public int BorderSize
+    {
+        get => borderSize;
+        set { borderSize = value; Invalidate(); }
+    }
+
+    protected override void OnPaint(PaintEventArgs pevent)
+    {
+        base.OnPaint(pevent);
+        pevent.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+        // Draw background
+        using (var backgroundBrush = new SolidBrush(Enabled ? BackColor : SystemColors.Control))
+        {
+            pevent.Graphics.FillRectangle(backgroundBrush, ClientRectangle);
+        }
+
+        // Draw border
+        using (var borderPen = new Pen(borderColor, borderSize))
+        {
+            pevent.Graphics.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+        }
+
+        // Draw custom text
+        TextRenderer.DrawText(pevent.Graphics, Text, Font, ClientRectangle, Enabled ? ForeColor : SystemColors.GrayText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+    }
+
+    protected override void OnMouseEnter(EventArgs eventArgs)
+    {
+        base.OnMouseEnter(eventArgs);
+        BackColor = hoverBackColor;
+        ForeColor = hoverForeColor;
+    }
+
+    protected override void OnMouseLeave(EventArgs eventArgs)
+    {
+        base.OnMouseLeave(eventArgs);
+        BackColor = SystemColors.Control;
+        ForeColor = SystemColors.ControlText;
+    }
 }
